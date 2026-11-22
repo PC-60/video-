@@ -1,0 +1,2917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What-If Narration Video Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d16;--panel:#131726;--panel2:#191e31;--line:#262c44;--fg:#e9ecf6;--muted:#8a90aa;--acc:#ffd23f;--acc2:#ffe27a;--ok:#43d19e;--warn:#ffb547;--bad:#ff6b6b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;font-size:14px}
+button,input,select,textarea{font:inherit;color:inherit}
+header.top{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line);background:#0e1120;position:sticky;top:0;z-index:5}
+header.top h1{margin:0;font-size:16px;font-weight:700}
+header.top .sub{color:var(--muted);font-size:12px}
+.app{display:grid;grid-template-columns:minmax(360px,500px) 1fr;gap:18px;padding:18px 20px;align-items:start}
+@media(max-width:980px){.app{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.card>h2{margin:0;padding:12px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);background:var(--panel2)}
+.card>h2 .n{width:20px;height:20px;border-radius:50%;background:var(--acc);color:#0b0d16;display:grid;place-items:center;font-size:11px;font-weight:800}
+.card>h2 .r{margin-left:auto;font-weight:400;color:var(--muted);font-size:12px}
+.body{padding:12px 14px}
+label.f{display:block;font-size:12px;color:var(--muted);margin:0 0 5px}
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.row>div{flex:1;min-width:120px}
+textarea{width:100%;min-height:200px;resize:vertical;background:#0d1020;border:1px solid var(--line);border-radius:8px;padding:10px;line-height:1.5}
+select,input[type=number],input[type=text]{width:100%;background:#0d1020;border:1px solid var(--line);border-radius:8px;padding:8px 9px}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:#3a4266}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#14120a;font-weight:700}
+.btn.pri:hover{background:var(--acc2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.hint{color:var(--muted);font-size:12px;line-height:1.5;margin:8px 0 0}
+.hint b{color:var(--fg);font-weight:600}
+.drop{border:1.5px dashed #33395a;border-radius:10px;padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:3px;margin-bottom:8px}
+.drop:hover,.drop.over{border-color:var(--acc)}
+.drop.done{border-style:solid;border-color:#2c6b55;background:#10211d}
+.drop span{color:var(--muted);font-size:12px}
+input[type=file]{display:none}
+.checks{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px}
+.checks label{display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px}
+.sws{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+.sw.on{border-color:#fff;box-shadow:0 0 0 2px #0b0d16 inset}
+.stage{position:sticky;top:66px}
+.pvwrap{background:#000;border-radius:12px;overflow:hidden;border:1px solid var(--line);display:flex;justify-content:center}
+canvas#pv{display:block;max-width:100%;max-height:62vh;background:#000}
+.ctrl{display:flex;gap:10px;align-items:center;margin:10px 0}
+.ctrl input[type=range]{flex:1;accent-color:var(--acc)}
+.ctrl .time{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px;min-width:120px;text-align:right}
+.chaps{max-height:260px;overflow:auto}
+.chap{display:grid;grid-template-columns:54px 1fr 130px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #1e2338}
+.chap:last-child{border-bottom:0}
+.chap .tm{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;cursor:pointer}
+.chap .tm:hover{color:var(--acc)}
+.chap .tt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chap select{padding:5px 6px;font-size:12px}
+.prog{height:8px;background:#0d1020;border-radius:6px;overflow:hidden;border:1px solid var(--line);margin:10px 0 6px}
+.prog>div{height:100%;width:0;background:var(--acc);transition:width .2s}
+#expMsg{font-size:12px;color:var(--muted);min-height:18px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#1d2340;border:1px solid #384170;padding:10px 16px;border-radius:10px;opacity:0;transition:.25s;pointer-events:none;z-index:50;max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;background:#1d2340;color:var(--muted);font-size:11px}
+.status{font-size:12px;margin-top:8px;line-height:1.5}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
+.th{position:relative;width:76px;height:76px;border-radius:10px;border:2px solid var(--line);background:#0d1020;padding:0;cursor:pointer;overflow:hidden;display:grid;place-items:center}
+.th canvas{display:block;width:72px;height:72px}
+.th.on{border-color:var(--acc)}
+.th.add{border-style:dashed;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.th.add b{font-size:22px;color:var(--fg);font-weight:500}.th.add span{font-size:11px}
+.th .bd{position:absolute;left:4px;top:4px;background:var(--acc);color:#111;border-radius:10px;font-size:10px;font-weight:800;padding:1px 6px}
+.th .dot{position:absolute;right:5px;bottom:5px;width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 2px #0d1020}
+details.best{margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#0d1020}
+details.best summary{cursor:pointer;font-weight:600;font-size:13px}
+details.best ul{margin:8px 0 4px 18px;padding:0;color:var(--muted);font-size:12px;line-height:1.6}
+details.best li b{color:var(--fg)}
+details.best code{display:block;white-space:pre-wrap;background:#161a30;border-radius:6px;padding:8px;margin:6px 0;color:var(--fg);font-size:12px}
+.th .rm{position:absolute;right:3px;top:1px;color:#fff;background:rgba(0,0,0,.55);border-radius:50%;width:18px;height:18px;line-height:17px;font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<header class="top"><h1>What-If Narration Video Maker</h1><span class="sub">Story text + TTS audio → synced subtitles over a character sketch that draws itself, or animated scenes</span></header>
+<div class="app">
+<div>
+  <div class="card">
+    <h2><span class="n">1</span> Story text <span class="r" id="wordCount"></span></h2>
+    <div class="body">
+      <textarea id="story" placeholder="Paste the exact text your TTS reads.&#10;&#10;Chapter 1: What if the Moon disappeared?&#10;Tonight, look up..."></textarea>
+      <div class="row" style="margin-top:10px">
+        <div><label class="f">New chapter starts at</label>
+          <select id="headMode"><option value="auto">Auto-detect</option><option value="chapter">Lines like "Chapter 3: …" / "Part 3" / "# Title"</option><option value="whatif">Every short "What if …?" line</option><option value="none">No chapters (one long story)</option></select></div>
+        <div><label class="f">Video title (optional intro card)</label><input type="text" id="vTitle" placeholder="e.g. 10 What-Ifs That Would Change Earth"></div>
+      </div>
+      <p class="hint">Chapters get their own title card, and with <b>New drawing every chapter</b> each one gets its own sketch. In <b>Animated scenes</b> mode, each chapter's scene is picked from its words.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">2</span> Narration <span class="r" id="syncState">not synced</span></h2>
+    <div class="body">
+      <div style="margin-bottom:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#10142a">
+        <label class="f">Intro</label>
+        <select id="introMode"><option value="none">No intro</option><option value="inaudio">My narration audio starts with an intro</option><option value="file">Add a separate intro audio before the narration</option></select>
+        <div id="introBox" style="display:none;margin-top:10px">
+          <div id="introFileRow"><div class="drop" id="introDrop"><b>Intro audio</b><span id="introLabel">Drop or click: MP3 or WAV of your intro</span></div><input type="file" id="introFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"></div>
+          <label class="f">What the intro says <span class="pill">optional · gives it subtitles</span></label>
+          <textarea id="introText" style="min-height:80px" placeholder="Welcome back! Tonight we're exploring 10 crazy what-ifs. Get comfortable…"></textarea>
+          <div id="introLenRow" class="row" style="margin-top:8px"><div style="max-width:220px"><label class="f">Intro length (seconds)</label><input type="number" id="introLen" value="30" min="0" step="1"></div></div>
+          <p class="hint" id="introHint"></p>
+        </div>
+      </div>
+      <div class="drop" id="audDrop"><b>Narration audio</b><span id="audLabel">Drop or click: MP3 or WAV works best for long audio (4+ hours is fine)</span></div>
+      <div class="drop" id="srtDrop"><b>Subtitles .srt / .vtt <span class="pill">optional</span></b><span id="srtLabel">Only if your TTS gave you one. Otherwise use Auto-sync.</span></div>
+      <input type="file" id="audFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg">
+      <input type="file" id="srtFile" accept=".srt,.vtt,text/plain">
+      <div class="row">
+        <button class="btn pri" id="syncBtn">✨ Auto-sync to the audio</button>
+        <button class="btn" id="saveSrtBtn" style="display:none">⬇ Save subtitles</button>
+        <button class="btn" id="cancelSyncBtn" style="display:none">Cancel</button>
+      </div>
+      <div class="status" id="syncMsg"></div>
+      <div class="row" style="margin-top:10px">
+        <div><label class="f">Shift subtitles (sec)</label><input type="number" id="shift" value="0" step="0.1"></div>
+        <div><label class="f">Reading speed for preview without audio (wpm)</label><input type="number" id="wpm" value="160" step="5" min="60" max="400"></div>
+      </div>
+      <p class="hint"><b>Auto-sync</b> times every line from your story text and the pauses in the voice. It takes about a minute for a 4-hour MP3, and it works best when the TTS read exactly the text you pasted.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">3</span> Look</h2>
+    <div class="body">
+      <div class="row"><div><label class="f">Background</label><select id="bgMode"><option value="sketch">✏️ Sketch: a character gets drawn slowly until the end</option><option value="scenes">🎬 Animated scenes that match each topic</option></select></div></div>
+      <div id="sketchBox" style="margin:12px 0 14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#10142a">
+        <label class="f">Characters to draw <span class="pill">click to pick several · drop, upload or paste (Ctrl+V) images</span></label>
+        <div class="thumbs" id="thumbs"></div>
+        <input type="file" id="imgFile" accept="image/*" multiple>
+        <div class="status" id="skMsg"></div>
+        <div class="status" id="skSpeed" style="color:var(--muted)"></div>
+        <button class="btn" id="skOnly" style="display:none;margin-top:6px;font-size:12px;padding:5px 9px">Use only the drawing shown now</button>
+        <div class="row" style="margin-top:10px">
+          <div><label class="f">Drawing</label><select id="skPace"><option value="whole">Spread over the whole video (one after another)</option><option value="chapter">One drawing per chapter (they take turns)</option></select></div>
+          <div><label class="f">Surface</label><select id="skPaper"><option value="paper">Sketchbook paper</option><option value="chalk">Chalkboard</option><option value="dark">Dark page</option></select></div>
+          <div style="max-width:130px"><label class="f">Upload detail</label><select id="skDetail"><option value="0">Simple</option><option value="1">Normal</option><option value="2">Detailed</option></select></div>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="skColor" checked> Colour it in at the end</label>
+          <label><input type="checkbox" id="skPen" checked> Show the pencil</label>
+          <label><input type="checkbox" id="skCam" checked> Slow camera follows the pencil</label>
+        </div>
+        <p class="hint">Each drawing goes outline first, then shading, then colour, and finishes a little before its time is up. Pick <b>several characters</b> to draw them one after another (numbers show the order). The green / orange / red dot rates how well each image sketches, and the speed line tells you whether the pencil will visibly move. Uploads are remembered in this browser.</p>
+        <details class="best"><summary>🖼️ What images work best?</summary><ul>
+          <li><b>One character, full body, centred</b>, filling most of the image.</li>
+          <li><b>Plain or white background</b>. A transparent PNG is best; busy backgrounds turn into messy lines.</li>
+          <li><b>Cartoon style with clear dark outlines and flat colours</b> sketches most cleanly. Line art and comic style work great too.</li>
+          <li><b>Good contrast</b>: not too dark, blurry or low-light. At least ~800 px on the long side.</li>
+          <li><b>Avoid</b> text and logos, tiny details everywhere, real photos of crowds or rooms, and screenshots.</li>
+          <li><b>For long videos</b> (2+ hours), use several drawings or <b>Detailed</b>, so the pencil keeps moving at a visible speed.</li>
+          <li><b>Your own characters only</b>: drawn by you or made with an image generator. Characters from games, anime or cartoons can get copyright claims.</li>
+          <li>Image-generator prompt that works well:<code>cute cartoon [your character, e.g. a fox astronaut], full body, standing, thick clean black outlines, flat colours, simple shapes, plain white background, children's book style</code></li>
+        </ul></details>
+      </div>
+      <div class="row">
+        <div><label class="f">Video size</label><select id="res"><option value="1920x1080">1920×1080 · YouTube (16:9)</option><option value="1280x720">1280×720 · smaller file, faster</option><option value="1080x1920">1080×1920 · Shorts (9:16)</option></select></div>
+        <div><label class="f">Subtitle size</label><select id="tsize"><option value="0.85">Small</option><option value="1" selected>Normal</option><option value="1.18">Large</option><option value="1.35">Extra large</option></select></div>
+      </div>
+      <div style="margin-top:12px"><label class="f">Word highlight colour</label><div class="sws" id="sws"></div></div>
+      <div class="checks">
+        <label><input type="checkbox" id="optEmoji" checked> Emoji pop-ups on key words</label>
+        <label><input type="checkbox" id="optCards" checked> Chapter title cards</label>
+        <label><input type="checkbox" id="optCorner" checked> Chapter name + progress bar</label>
+        <label><input type="checkbox" id="optSubs" checked> Subtitles</label>
+      </div>
+      <div class="row" style="margin-top:12px;align-items:center">
+        <button class="btn" id="remixBtn">🎲 New look</button>
+        <span class="hint" style="margin:0">Changes the colours of every scene, so each video looks different. Look <span id="seedLbl"></span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="pvwrap"><canvas id="pv" width="960" height="540"></canvas></div>
+  <div class="ctrl"><button class="btn" id="playBtn">▶ Play</button><button class="btn" id="skFinish">👁 Finished drawing</button><input type="range" id="seek" min="0" max="1000" value="0"><span class="time" id="time">0:00 / 0:00</span></div>
+
+  <div class="card">
+    <h2>Chapters &amp; scenes <span class="r" id="chapCount"></span></h2>
+    <div class="body chaps" id="chaps"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="n">4</span> Export video <span class="r" id="encInfo"></span></h2>
+    <div class="body">
+      <div class="row">
+        <div><label class="f">Files</label><select id="expMode"><option value="whole">One video (whole narration)</option><option value="chapters">One file per chapter</option></select></div>
+        <div><label class="f">Quality</label><select id="qual"><option value="std">Standard · 30 fps</option><option value="small">Smaller file · 24 fps</option></select></div>
+      </div>
+      <p class="hint" id="sizeEst"></p>
+      <div class="row" style="margin-top:8px"><button class="btn pri" id="exportBtn">⬇ Export MP4</button><button class="btn" id="cancelBtn" style="display:none">Cancel</button></div>
+      <div class="prog"><div id="progBar"></div></div>
+      <div id="expMsg"></div>
+      <p class="hint">Needs <b>Chrome or Edge</b> on a computer. Keep this tab open and in front while it renders, because browsers slow down background tabs. If saving one huge file fails, switch to <b>Smaller file</b>, 1280×720, or <b>one file per chapter</b>.</p>
+    </div>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>"use strict";
+var Mp4Muxer = (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+  var __accessCheck = (obj, member, msg) => {
+    if (!member.has(obj))
+      throw TypeError("Cannot " + msg);
+  };
+  var __privateGet = (obj, member, getter) => {
+    __accessCheck(obj, member, "read from private field");
+    return getter ? getter.call(obj) : member.get(obj);
+  };
+  var __privateAdd = (obj, member, value) => {
+    if (member.has(obj))
+      throw TypeError("Cannot add the same private member more than once");
+    member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
+  };
+  var __privateSet = (obj, member, value, setter) => {
+    __accessCheck(obj, member, "write to private field");
+    setter ? setter.call(obj, value) : member.set(obj, value);
+    return value;
+  };
+  var __privateWrapper = (obj, member, setter, getter) => ({
+    set _(value) {
+      __privateSet(obj, member, value, setter);
+    },
+    get _() {
+      return __privateGet(obj, member, getter);
+    }
+  });
+  var __privateMethod = (obj, member, method) => {
+    __accessCheck(obj, member, "access private method");
+    return method;
+  };
+
+  // src/index.ts
+  var src_exports = {};
+  __export(src_exports, {
+    ArrayBufferTarget: () => ArrayBufferTarget,
+    FileSystemWritableFileStreamTarget: () => FileSystemWritableFileStreamTarget,
+    Muxer: () => Muxer,
+    StreamTarget: () => StreamTarget
+  });
+
+  // src/misc.ts
+  var bytes = new Uint8Array(8);
+  var view = new DataView(bytes.buffer);
+  var u8 = (value) => {
+    return [(value % 256 + 256) % 256];
+  };
+  var u16 = (value) => {
+    view.setUint16(0, value, false);
+    return [bytes[0], bytes[1]];
+  };
+  var i16 = (value) => {
+    view.setInt16(0, value, false);
+    return [bytes[0], bytes[1]];
+  };
+  var u24 = (value) => {
+    view.setUint32(0, value, false);
+    return [bytes[1], bytes[2], bytes[3]];
+  };
+  var u32 = (value) => {
+    view.setUint32(0, value, false);
+    return [bytes[0], bytes[1], bytes[2], bytes[3]];
+  };
+  var i32 = (value) => {
+    view.setInt32(0, value, false);
+    return [bytes[0], bytes[1], bytes[2], bytes[3]];
+  };
+  var u64 = (value) => {
+    view.setUint32(0, Math.floor(value / 2 ** 32), false);
+    view.setUint32(4, value, false);
+    return [bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7]];
+  };
+  var fixed_8_8 = (value) => {
+    view.setInt16(0, 2 ** 8 * value, false);
+    return [bytes[0], bytes[1]];
+  };
+  var fixed_16_16 = (value) => {
+    view.setInt32(0, 2 ** 16 * value, false);
+    return [bytes[0], bytes[1], bytes[2], bytes[3]];
+  };
+  var fixed_2_30 = (value) => {
+    view.setInt32(0, 2 ** 30 * value, false);
+    return [bytes[0], bytes[1], bytes[2], bytes[3]];
+  };
+  var ascii = (text, nullTerminated = false) => {
+    let bytes2 = Array(text.length).fill(null).map((_, i) => text.charCodeAt(i));
+    if (nullTerminated)
+      bytes2.push(0);
+    return bytes2;
+  };
+  var last = (arr) => {
+    return arr && arr[arr.length - 1];
+  };
+  var lastPresentedSample = (samples) => {
+    let result = void 0;
+    for (let sample of samples) {
+      if (!result || sample.presentationTimestamp > result.presentationTimestamp) {
+        result = sample;
+      }
+    }
+    return result;
+  };
+  var intoTimescale = (timeInSeconds, timescale, round = true) => {
+    let value = timeInSeconds * timescale;
+    return round ? Math.round(value) : value;
+  };
+  var rotationMatrix = (rotationInDegrees) => {
+    let theta = rotationInDegrees * (Math.PI / 180);
+    let cosTheta = Math.cos(theta);
+    let sinTheta = Math.sin(theta);
+    return [
+      cosTheta,
+      sinTheta,
+      0,
+      -sinTheta,
+      cosTheta,
+      0,
+      0,
+      0,
+      1
+    ];
+  };
+  var IDENTITY_MATRIX = rotationMatrix(0);
+  var matrixToBytes = (matrix) => {
+    return [
+      fixed_16_16(matrix[0]),
+      fixed_16_16(matrix[1]),
+      fixed_2_30(matrix[2]),
+      fixed_16_16(matrix[3]),
+      fixed_16_16(matrix[4]),
+      fixed_2_30(matrix[5]),
+      fixed_16_16(matrix[6]),
+      fixed_16_16(matrix[7]),
+      fixed_2_30(matrix[8])
+    ];
+  };
+  var deepClone = (x) => {
+    if (!x)
+      return x;
+    if (typeof x !== "object")
+      return x;
+    if (Array.isArray(x))
+      return x.map(deepClone);
+    return Object.fromEntries(Object.entries(x).map(([key, value]) => [key, deepClone(value)]));
+  };
+  var isU32 = (value) => {
+    return value >= 0 && value < 2 ** 32;
+  };
+
+  // src/box.ts
+  var box = (type, contents, children) => ({
+    type,
+    contents: contents && new Uint8Array(contents.flat(10)),
+    children
+  });
+  var fullBox = (type, version, flags, contents, children) => box(
+    type,
+    [u8(version), u24(flags), contents ?? []],
+    children
+  );
+  var ftyp = (details) => {
+    let minorVersion = 512;
+    if (details.fragmented)
+      return box("ftyp", [
+        ascii("iso5"),
+        // Major brand
+        u32(minorVersion),
+        // Minor version
+        // Compatible brands
+        ascii("iso5"),
+        ascii("iso6"),
+        ascii("mp41")
+      ]);
+    return box("ftyp", [
+      ascii("isom"),
+      // Major brand
+      u32(minorVersion),
+      // Minor version
+      // Compatible brands
+      ascii("isom"),
+      details.holdsAvc ? ascii("avc1") : [],
+      ascii("mp41")
+    ]);
+  };
+  var mdat = (reserveLargeSize) => ({ type: "mdat", largeSize: reserveLargeSize });
+  var free = (size) => ({ type: "free", size });
+  var moov = (tracks, creationTime, fragmented = false) => box("moov", null, [
+    mvhd(creationTime, tracks),
+    ...tracks.map((x) => trak(x, creationTime)),
+    fragmented ? mvex(tracks) : null
+  ]);
+  var mvhd = (creationTime, tracks) => {
+    let duration = intoTimescale(Math.max(
+      0,
+      ...tracks.filter((x) => x.samples.length > 0).map((x) => {
+        const lastSample = lastPresentedSample(x.samples);
+        return lastSample.presentationTimestamp + lastSample.duration;
+      })
+    ), GLOBAL_TIMESCALE);
+    let nextTrackId = Math.max(...tracks.map((x) => x.id)) + 1;
+    let needsU64 = !isU32(creationTime) || !isU32(duration);
+    let u32OrU64 = needsU64 ? u64 : u32;
+    return fullBox("mvhd", +needsU64, 0, [
+      u32OrU64(creationTime),
+      // Creation time
+      u32OrU64(creationTime),
+      // Modification time
+      u32(GLOBAL_TIMESCALE),
+      // Timescale
+      u32OrU64(duration),
+      // Duration
+      fixed_16_16(1),
+      // Preferred rate
+      fixed_8_8(1),
+      // Preferred volume
+      Array(10).fill(0),
+      // Reserved
+      matrixToBytes(IDENTITY_MATRIX),
+      // Matrix
+      Array(24).fill(0),
+      // Pre-defined
+      u32(nextTrackId)
+      // Next track ID
+    ]);
+  };
+  var trak = (track, creationTime) => box("trak", null, [
+    tkhd(track, creationTime),
+    mdia(track, creationTime)
+  ]);
+  var tkhd = (track, creationTime) => {
+    let lastSample = lastPresentedSample(track.samples);
+    let durationInGlobalTimescale = intoTimescale(
+      lastSample ? lastSample.presentationTimestamp + lastSample.duration : 0,
+      GLOBAL_TIMESCALE
+    );
+    let needsU64 = !isU32(creationTime) || !isU32(durationInGlobalTimescale);
+    let u32OrU64 = needsU64 ? u64 : u32;
+    let matrix;
+    if (track.info.type === "video") {
+      matrix = typeof track.info.rotation === "number" ? rotationMatrix(track.info.rotation) : track.info.rotation;
+    } else {
+      matrix = IDENTITY_MATRIX;
+    }
+    return fullBox("tkhd", +needsU64, 3, [
+      u32OrU64(creationTime),
+      // Creation time
+      u32OrU64(creationTime),
+      // Modification time
+      u32(track.id),
+      // Track ID
+      u32(0),
+      // Reserved
+      u32OrU64(durationInGlobalTimescale),
+      // Duration
+      Array(8).fill(0),
+      // Reserved
+      u16(0),
+      // Layer
+      u16(0),
+      // Alternate group
+      fixed_8_8(track.info.type === "audio" ? 1 : 0),
+      // Volume
+      u16(0),
+      // Reserved
+      matrixToBytes(matrix),
+      // Matrix
+      fixed_16_16(track.info.type === "video" ? track.info.width : 0),
+      // Track width
+      fixed_16_16(track.info.type === "video" ? track.info.height : 0)
+      // Track height
+    ]);
+  };
+  var mdia = (track, creationTime) => box("mdia", null, [
+    mdhd(track, creationTime),
+    hdlr(track.info.type === "video" ? "vide" : "soun"),
+    minf(track)
+  ]);
+  var mdhd = (track, creationTime) => {
+    let lastSample = lastPresentedSample(track.samples);
+    let localDuration = intoTimescale(
+      lastSample ? lastSample.presentationTimestamp + lastSample.duration : 0,
+      track.timescale
+    );
+    let needsU64 = !isU32(creationTime) || !isU32(localDuration);
+    let u32OrU64 = needsU64 ? u64 : u32;
+    return fullBox("mdhd", +needsU64, 0, [
+      u32OrU64(creationTime),
+      // Creation time
+      u32OrU64(creationTime),
+      // Modification time
+      u32(track.timescale),
+      // Timescale
+      u32OrU64(localDuration),
+      // Duration
+      u16(21956),
+      // Language ("und", undetermined)
+      u16(0)
+      // Quality
+    ]);
+  };
+  var hdlr = (componentSubtype) => fullBox("hdlr", 0, 0, [
+    ascii("mhlr"),
+    // Component type
+    ascii(componentSubtype),
+    // Component subtype
+    u32(0),
+    // Component manufacturer
+    u32(0),
+    // Component flags
+    u32(0),
+    // Component flags mask
+    ascii("mp4-muxer-hdlr", true)
+    // Component name
+  ]);
+  var minf = (track) => box("minf", null, [
+    track.info.type === "video" ? vmhd() : smhd(),
+    dinf(),
+    stbl(track)
+  ]);
+  var vmhd = () => fullBox("vmhd", 0, 1, [
+    u16(0),
+    // Graphics mode
+    u16(0),
+    // Opcolor R
+    u16(0),
+    // Opcolor G
+    u16(0)
+    // Opcolor B
+  ]);
+  var smhd = () => fullBox("smhd", 0, 0, [
+    u16(0),
+    // Balance
+    u16(0)
+    // Reserved
+  ]);
+  var dinf = () => box("dinf", null, [
+    dref()
+  ]);
+  var dref = () => fullBox("dref", 0, 0, [
+    u32(1)
+    // Entry count
+  ], [
+    url()
+  ]);
+  var url = () => fullBox("url ", 0, 1);
+  var stbl = (track) => {
+    const needsCtts = track.compositionTimeOffsetTable.length > 1 || track.compositionTimeOffsetTable.some((x) => x.sampleCompositionTimeOffset !== 0);
+    return box("stbl", null, [
+      stsd(track),
+      stts(track),
+      stss(track),
+      stsc(track),
+      stsz(track),
+      stco(track),
+      needsCtts ? ctts(track) : null
+    ]);
+  };
+  var stsd = (track) => fullBox("stsd", 0, 0, [
+    u32(1)
+    // Entry count
+  ], [
+    track.info.type === "video" ? videoSampleDescription(
+      VIDEO_CODEC_TO_BOX_NAME[track.info.codec],
+      track
+    ) : soundSampleDescription(
+      AUDIO_CODEC_TO_BOX_NAME[track.info.codec],
+      track
+    )
+  ]);
+  var videoSampleDescription = (compressionType, track) => box(compressionType, [
+    Array(6).fill(0),
+    // Reserved
+    u16(1),
+    // Data reference index
+    u16(0),
+    // Pre-defined
+    u16(0),
+    // Reserved
+    Array(12).fill(0),
+    // Pre-defined
+    u16(track.info.width),
+    // Width
+    u16(track.info.height),
+    // Height
+    u32(4718592),
+    // Horizontal resolution
+    u32(4718592),
+    // Vertical resolution
+    u32(0),
+    // Reserved
+    u16(1),
+    // Frame count
+    Array(32).fill(0),
+    // Compressor name
+    u16(24),
+    // Depth
+    i16(65535)
+    // Pre-defined
+  ], [
+    VIDEO_CODEC_TO_CONFIGURATION_BOX[track.info.codec](track),
+    track.info.decoderConfig.colorSpace ? colr(track) : null
+  ]);
+  var COLOR_PRIMARIES_MAP = {
+    "bt709": 1,
+    // ITU-R BT.709
+    "bt470bg": 5,
+    // ITU-R BT.470BG
+    "smpte170m": 6
+    // ITU-R BT.601 525 - SMPTE 170M
+  };
+  var TRANSFER_CHARACTERISTICS_MAP = {
+    "bt709": 1,
+    // ITU-R BT.709
+    "smpte170m": 6,
+    // SMPTE 170M
+    "iec61966-2-1": 13
+    // IEC 61966-2-1
+  };
+  var MATRIX_COEFFICIENTS_MAP = {
+    "rgb": 0,
+    // Identity
+    "bt709": 1,
+    // ITU-R BT.709
+    "bt470bg": 5,
+    // ITU-R BT.470BG
+    "smpte170m": 6
+    // SMPTE 170M
+  };
+  var colr = (track) => box("colr", [
+    ascii("nclx"),
+    // Colour type
+    u16(COLOR_PRIMARIES_MAP[track.info.decoderConfig.colorSpace.primaries]),
+    // Colour primaries
+    u16(TRANSFER_CHARACTERISTICS_MAP[track.info.decoderConfig.colorSpace.transfer]),
+    // Transfer characteristics
+    u16(MATRIX_COEFFICIENTS_MAP[track.info.decoderConfig.colorSpace.matrix]),
+    // Matrix coefficients
+    u8((track.info.decoderConfig.colorSpace.fullRange ? 1 : 0) << 7)
+    // Full range flag
+  ]);
+  var avcC = (track) => track.info.decoderConfig && box("avcC", [
+    // For AVC, description is an AVCDecoderConfigurationRecord, so nothing else to do here
+    ...new Uint8Array(track.info.decoderConfig.description)
+  ]);
+  var hvcC = (track) => track.info.decoderConfig && box("hvcC", [
+    // For HEVC, description is a HEVCDecoderConfigurationRecord, so nothing else to do here
+    ...new Uint8Array(track.info.decoderConfig.description)
+  ]);
+  var vpcC = (track) => {
+    if (!track.info.decoderConfig) {
+      return null;
+    }
+    let decoderConfig = track.info.decoderConfig;
+    if (!decoderConfig.colorSpace) {
+      throw new Error(`'colorSpace' is required in the decoder config for VP9.`);
+    }
+    let parts = decoderConfig.codec.split(".");
+    let profile = Number(parts[1]);
+    let level = Number(parts[2]);
+    let bitDepth = Number(parts[3]);
+    let chromaSubsampling = 0;
+    let thirdByte = (bitDepth << 4) + (chromaSubsampling << 1) + Number(decoderConfig.colorSpace.fullRange);
+    let colourPrimaries = 2;
+    let transferCharacteristics = 2;
+    let matrixCoefficients = 2;
+    return fullBox("vpcC", 1, 0, [
+      u8(profile),
+      // Profile
+      u8(level),
+      // Level
+      u8(thirdByte),
+      // Bit depth, chroma subsampling, full range
+      u8(colourPrimaries),
+      // Colour primaries
+      u8(transferCharacteristics),
+      // Transfer characteristics
+      u8(matrixCoefficients),
+      // Matrix coefficients
+      u16(0)
+      // Codec initialization data size
+    ]);
+  };
+  var av1C = () => {
+    let marker = 1;
+    let version = 1;
+    let firstByte = (marker << 7) + version;
+    return box("av1C", [
+      firstByte,
+      0,
+      0,
+      0
+    ]);
+  };
+  var soundSampleDescription = (compressionType, track) => box(compressionType, [
+    Array(6).fill(0),
+    // Reserved
+    u16(1),
+    // Data reference index
+    u16(0),
+    // Version
+    u16(0),
+    // Revision level
+    u32(0),
+    // Vendor
+    u16(track.info.numberOfChannels),
+    // Number of channels
+    u16(16),
+    // Sample size (bits)
+    u16(0),
+    // Compression ID
+    u16(0),
+    // Packet size
+    fixed_16_16(track.info.sampleRate)
+    // Sample rate
+  ], [
+    AUDIO_CODEC_TO_CONFIGURATION_BOX[track.info.codec](track)
+  ]);
+  var esds = (track) => {
+    let description = new Uint8Array(track.info.decoderConfig.description);
+    return fullBox("esds", 0, 0, [
+      // https://stackoverflow.com/a/54803118
+      u32(58753152),
+      // TAG(3) = Object Descriptor ([2])
+      u8(32 + description.byteLength),
+      // length of this OD (which includes the next 2 tags)
+      u16(1),
+      // ES_ID = 1
+      u8(0),
+      // flags etc = 0
+      u32(75530368),
+      // TAG(4) = ES Descriptor ([2]) embedded in above OD
+      u8(18 + description.byteLength),
+      // length of this ESD
+      u8(64),
+      // MPEG-4 Audio
+      u8(21),
+      // stream type(6bits)=5 audio, flags(2bits)=1
+      u24(0),
+      // 24bit buffer size
+      u32(130071),
+      // max bitrate
+      u32(130071),
+      // avg bitrate
+      u32(92307584),
+      // TAG(5) = ASC ([2],[3]) embedded in above OD
+      u8(description.byteLength),
+      // length
+      ...description,
+      u32(109084800),
+      // TAG(6)
+      u8(1),
+      // length
+      u8(2)
+      // data
+    ]);
+  };
+  var dOps = (track) => {
+    let preskip = 3840;
+    let gain = 0;
+    const description = track.info.decoderConfig?.description;
+    if (description) {
+      if (description.byteLength < 18) {
+        throw new TypeError("Invalid decoder description provided for Opus; must be at least 18 bytes long.");
+      }
+      const view2 = ArrayBuffer.isView(description) ? new DataView(description.buffer, description.byteOffset, description.byteLength) : new DataView(description);
+      preskip = view2.getUint16(10, true);
+      gain = view2.getInt16(14, true);
+    }
+    return box("dOps", [
+      u8(0),
+      // Version
+      u8(track.info.numberOfChannels),
+      // OutputChannelCount
+      u16(preskip),
+      u32(track.info.sampleRate),
+      // InputSampleRate
+      fixed_8_8(gain),
+      // OutputGain
+      u8(0)
+      // ChannelMappingFamily
+    ]);
+  };
+  var stts = (track) => {
+    return fullBox("stts", 0, 0, [
+      u32(track.timeToSampleTable.length),
+      // Number of entries
+      track.timeToSampleTable.map((x) => [
+        // Time-to-sample table
+        u32(x.sampleCount),
+        // Sample count
+        u32(x.sampleDelta)
+        // Sample duration
+      ])
+    ]);
+  };
+  var stss = (track) => {
+    if (track.samples.every((x) => x.type === "key"))
+      return null;
+    let keySamples = [...track.samples.entries()].filter(([, sample]) => sample.type === "key");
+    return fullBox("stss", 0, 0, [
+      u32(keySamples.length),
+      // Number of entries
+      keySamples.map(([index]) => u32(index + 1))
+      // Sync sample table
+    ]);
+  };
+  var stsc = (track) => {
+    return fullBox("stsc", 0, 0, [
+      u32(track.compactlyCodedChunkTable.length),
+      // Number of entries
+      track.compactlyCodedChunkTable.map((x) => [
+        // Sample-to-chunk table
+        u32(x.firstChunk),
+        // First chunk
+        u32(x.samplesPerChunk),
+        // Samples per chunk
+        u32(1)
+        // Sample description index
+      ])
+    ]);
+  };
+  var stsz = (track) => fullBox("stsz", 0, 0, [
+    u32(0),
+    // Sample size (0 means non-constant size)
+    u32(track.samples.length),
+    // Number of entries
+    track.samples.map((x) => u32(x.size))
+    // Sample size table
+  ]);
+  var stco = (track) => {
+    if (track.finalizedChunks.length > 0 && last(track.finalizedChunks).offset >= 2 ** 32) {
+      return fullBox("co64", 0, 0, [
+        u32(track.finalizedChunks.length),
+        // Number of entries
+        track.finalizedChunks.map((x) => u64(x.offset))
+        // Chunk offset table
+      ]);
+    }
+    return fullBox("stco", 0, 0, [
+      u32(track.finalizedChunks.length),
+      // Number of entries
+      track.finalizedChunks.map((x) => u32(x.offset))
+      // Chunk offset table
+    ]);
+  };
+  var ctts = (track) => {
+    return fullBox("ctts", 0, 0, [
+      u32(track.compositionTimeOffsetTable.length),
+      // Number of entries
+      track.compositionTimeOffsetTable.map((x) => [
+        // Time-to-sample table
+        u32(x.sampleCount),
+        // Sample count
+        u32(x.sampleCompositionTimeOffset)
+        // Sample offset
+      ])
+    ]);
+  };
+  var mvex = (tracks) => {
+    return box("mvex", null, tracks.map(trex));
+  };
+  var trex = (track) => {
+    return fullBox("trex", 0, 0, [
+      u32(track.id),
+      // Track ID
+      u32(1),
+      // Default sample description index
+      u32(0),
+      // Default sample duration
+      u32(0),
+      // Default sample size
+      u32(0)
+      // Default sample flags
+    ]);
+  };
+  var moof = (sequenceNumber, tracks) => {
+    return box("moof", null, [
+      mfhd(sequenceNumber),
+      ...tracks.map(traf)
+    ]);
+  };
+  var mfhd = (sequenceNumber) => {
+    return fullBox("mfhd", 0, 0, [
+      u32(sequenceNumber)
+      // Sequence number
+    ]);
+  };
+  var fragmentSampleFlags = (sample) => {
+    let byte1 = 0;
+    let byte2 = 0;
+    let byte3 = 0;
+    let byte4 = 0;
+    let sampleIsDifferenceSample = sample.type === "delta";
+    byte2 |= +sampleIsDifferenceSample;
+    if (sampleIsDifferenceSample) {
+      byte1 |= 1;
+    } else {
+      byte1 |= 2;
+    }
+    return byte1 << 24 | byte2 << 16 | byte3 << 8 | byte4;
+  };
+  var traf = (track) => {
+    return box("traf", null, [
+      tfhd(track),
+      tfdt(track),
+      trun(track)
+    ]);
+  };
+  var tfhd = (track) => {
+    let tfFlags = 0;
+    tfFlags |= 8;
+    tfFlags |= 16;
+    tfFlags |= 32;
+    tfFlags |= 131072;
+    let referenceSample = track.currentChunk.samples[1] ?? track.currentChunk.samples[0];
+    let referenceSampleInfo = {
+      duration: referenceSample.timescaleUnitsToNextSample,
+      size: referenceSample.size,
+      flags: fragmentSampleFlags(referenceSample)
+    };
+    return fullBox("tfhd", 0, tfFlags, [
+      u32(track.id),
+      // Track ID
+      u32(referenceSampleInfo.duration),
+      // Default sample duration
+      u32(referenceSampleInfo.size),
+      // Default sample size
+      u32(referenceSampleInfo.flags)
+      // Default sample flags
+    ]);
+  };
+  var tfdt = (track) => {
+    return fullBox("tfdt", 1, 0, [
+      u64(intoTimescale(track.currentChunk.startTimestamp, track.timescale))
+      // Base Media Decode Time
+    ]);
+  };
+  var trun = (track) => {
+    let allSampleDurations = track.currentChunk.samples.map((x) => x.timescaleUnitsToNextSample);
+    let allSampleSizes = track.currentChunk.samples.map((x) => x.size);
+    let allSampleFlags = track.currentChunk.samples.map(fragmentSampleFlags);
+    let allSampleCompositionTimeOffsets = track.currentChunk.samples.map((x) => intoTimescale(x.presentationTimestamp - x.decodeTimestamp, track.timescale));
+    let uniqueSampleDurations = new Set(allSampleDurations);
+    let uniqueSampleSizes = new Set(allSampleSizes);
+    let uniqueSampleFlags = new Set(allSampleFlags);
+    let uniqueSampleCompositionTimeOffsets = new Set(allSampleCompositionTimeOffsets);
+    let firstSampleFlagsPresent = uniqueSampleFlags.size === 2 && allSampleFlags[0] !== allSampleFlags[1];
+    let sampleDurationPresent = uniqueSampleDurations.size > 1;
+    let sampleSizePresent = uniqueSampleSizes.size > 1;
+    let sampleFlagsPresent = !firstSampleFlagsPresent && uniqueSampleFlags.size > 1;
+    let sampleCompositionTimeOffsetsPresent = uniqueSampleCompositionTimeOffsets.size > 1 || [...uniqueSampleCompositionTimeOffsets].some((x) => x !== 0);
+    let flags = 0;
+    flags |= 1;
+    flags |= 4 * +firstSampleFlagsPresent;
+    flags |= 256 * +sampleDurationPresent;
+    flags |= 512 * +sampleSizePresent;
+    flags |= 1024 * +sampleFlagsPresent;
+    flags |= 2048 * +sampleCompositionTimeOffsetsPresent;
+    return fullBox("trun", 1, flags, [
+      u32(track.currentChunk.samples.length),
+      // Sample count
+      u32(track.currentChunk.offset - track.currentChunk.moofOffset || 0),
+      // Data offset
+      firstSampleFlagsPresent ? u32(allSampleFlags[0]) : [],
+      track.currentChunk.samples.map((_, i) => [
+        sampleDurationPresent ? u32(allSampleDurations[i]) : [],
+        // Sample duration
+        sampleSizePresent ? u32(allSampleSizes[i]) : [],
+        // Sample size
+        sampleFlagsPresent ? u32(allSampleFlags[i]) : [],
+        // Sample flags
+        // Sample composition time offsets
+        sampleCompositionTimeOffsetsPresent ? i32(allSampleCompositionTimeOffsets[i]) : []
+      ])
+    ]);
+  };
+  var mfra = (tracks) => {
+    return box("mfra", null, [
+      ...tracks.map(tfra),
+      mfro()
+    ]);
+  };
+  var tfra = (track, trackIndex) => {
+    let version = 1;
+    return fullBox("tfra", version, 0, [
+      u32(track.id),
+      // Track ID
+      u32(63),
+      // This specifies that traf number, trun number and sample number are 32-bit ints
+      u32(track.finalizedChunks.length),
+      // Number of entries
+      track.finalizedChunks.map((chunk) => [
+        u64(intoTimescale(chunk.startTimestamp, track.timescale)),
+        // Time
+        u64(chunk.moofOffset),
+        // moof offset
+        u32(trackIndex + 1),
+        // traf number
+        u32(1),
+        // trun number
+        u32(1)
+        // Sample number
+      ])
+    ]);
+  };
+  var mfro = () => {
+    return fullBox("mfro", 0, 0, [
+      // This value needs to be overwritten manually from the outside, where the actual size of the enclosing mfra box
+      // is known
+      u32(0)
+      // Size
+    ]);
+  };
+  var VIDEO_CODEC_TO_BOX_NAME = {
+    "avc": "avc1",
+    "hevc": "hvc1",
+    "vp9": "vp09",
+    "av1": "av01"
+  };
+  var VIDEO_CODEC_TO_CONFIGURATION_BOX = {
+    "avc": avcC,
+    "hevc": hvcC,
+    "vp9": vpcC,
+    "av1": av1C
+  };
+  var AUDIO_CODEC_TO_BOX_NAME = {
+    "aac": "mp4a",
+    "opus": "Opus"
+  };
+  var AUDIO_CODEC_TO_CONFIGURATION_BOX = {
+    "aac": esds,
+    "opus": dOps
+  };
+
+  // src/target.ts
+  var isTarget = Symbol("isTarget");
+  var Target = class {
+  };
+  isTarget;
+  var ArrayBufferTarget = class extends Target {
+    constructor() {
+      super(...arguments);
+      this.buffer = null;
+    }
+  };
+  var StreamTarget = class extends Target {
+    constructor(options) {
+      super();
+      this.options = options;
+      if (typeof options !== "object") {
+        throw new TypeError("StreamTarget requires an options object to be passed to its constructor.");
+      }
+      if (options.onData) {
+        if (typeof options.onData !== "function") {
+          throw new TypeError("options.onData, when provided, must be a function.");
+        }
+        if (options.onData.length < 2) {
+          throw new TypeError(
+            "options.onData, when provided, must be a function that takes in at least two arguments (data and position). Ignoring the position argument, which specifies the byte offset at which the data is to be written, can lead to broken outputs."
+          );
+        }
+      }
+      if (options.chunked !== void 0 && typeof options.chunked !== "boolean") {
+        throw new TypeError("options.chunked, when provided, must be a boolean.");
+      }
+      if (options.chunkSize !== void 0 && (!Number.isInteger(options.chunkSize) || options.chunkSize < 1024)) {
+        throw new TypeError("options.chunkSize, when provided, must be an integer and not smaller than 1024.");
+      }
+    }
+  };
+  var FileSystemWritableFileStreamTarget = class extends Target {
+    constructor(stream, options) {
+      super();
+      this.stream = stream;
+      this.options = options;
+      if (!(stream instanceof FileSystemWritableFileStream)) {
+        throw new TypeError("FileSystemWritableFileStreamTarget requires a FileSystemWritableFileStream instance.");
+      }
+      if (options !== void 0 && typeof options !== "object") {
+        throw new TypeError("FileSystemWritableFileStreamTarget's options, when provided, must be an object.");
+      }
+      if (options) {
+        if (options.chunkSize !== void 0 && (!Number.isInteger(options.chunkSize) || options.chunkSize <= 0)) {
+          throw new TypeError("options.chunkSize, when provided, must be a positive integer");
+        }
+      }
+    }
+  };
+
+  // src/writer.ts
+  var _helper, _helperView;
+  var Writer = class {
+    constructor() {
+      this.pos = 0;
+      __privateAdd(this, _helper, new Uint8Array(8));
+      __privateAdd(this, _helperView, new DataView(__privateGet(this, _helper).buffer));
+      /**
+       * Stores the position from the start of the file to where boxes elements have been written. This is used to
+       * rewrite/edit elements that were already added before, and to measure sizes of things.
+       */
+      this.offsets = /* @__PURE__ */ new WeakMap();
+    }
+    /** Sets the current position for future writes to a new one. */
+    seek(newPos) {
+      this.pos = newPos;
+    }
+    writeU32(value) {
+      __privateGet(this, _helperView).setUint32(0, value, false);
+      this.write(__privateGet(this, _helper).subarray(0, 4));
+    }
+    writeU64(value) {
+      __privateGet(this, _helperView).setUint32(0, Math.floor(value / 2 ** 32), false);
+      __privateGet(this, _helperView).setUint32(4, value, false);
+      this.write(__privateGet(this, _helper).subarray(0, 8));
+    }
+    writeAscii(text) {
+      for (let i = 0; i < text.length; i++) {
+        __privateGet(this, _helperView).setUint8(i % 8, text.charCodeAt(i));
+        if (i % 8 === 7)
+          this.write(__privateGet(this, _helper));
+      }
+      if (text.length % 8 !== 0) {
+        this.write(__privateGet(this, _helper).subarray(0, text.length % 8));
+      }
+    }
+    writeBox(box2) {
+      this.offsets.set(box2, this.pos);
+      if (box2.contents && !box2.children) {
+        this.writeBoxHeader(box2, box2.size ?? box2.contents.byteLength + 8);
+        this.write(box2.contents);
+      } else {
+        let startPos = this.pos;
+        this.writeBoxHeader(box2, 0);
+        if (box2.contents)
+          this.write(box2.contents);
+        if (box2.children) {
+          for (let child of box2.children)
+            if (child)
+              this.writeBox(child);
+        }
+        let endPos = this.pos;
+        let size = box2.size ?? endPos - startPos;
+        this.seek(startPos);
+        this.writeBoxHeader(box2, size);
+        this.seek(endPos);
+      }
+    }
+    writeBoxHeader(box2, size) {
+      this.writeU32(box2.largeSize ? 1 : size);
+      this.writeAscii(box2.type);
+      if (box2.largeSize)
+        this.writeU64(size);
+    }
+    measureBoxHeader(box2) {
+      return 8 + (box2.largeSize ? 8 : 0);
+    }
+    patchBox(box2) {
+      let endPos = this.pos;
+      this.seek(this.offsets.get(box2));
+      this.writeBox(box2);
+      this.seek(endPos);
+    }
+    measureBox(box2) {
+      if (box2.contents && !box2.children) {
+        let headerSize = this.measureBoxHeader(box2);
+        return headerSize + box2.contents.byteLength;
+      } else {
+        let result = this.measureBoxHeader(box2);
+        if (box2.contents)
+          result += box2.contents.byteLength;
+        if (box2.children) {
+          for (let child of box2.children)
+            if (child)
+              result += this.measureBox(child);
+        }
+        return result;
+      }
+    }
+  };
+  _helper = new WeakMap();
+  _helperView = new WeakMap();
+  var _target, _buffer, _bytes, _maxPos, _ensureSize, ensureSize_fn;
+  var ArrayBufferTargetWriter = class extends Writer {
+    constructor(target) {
+      super();
+      __privateAdd(this, _ensureSize);
+      __privateAdd(this, _target, void 0);
+      __privateAdd(this, _buffer, new ArrayBuffer(2 ** 16));
+      __privateAdd(this, _bytes, new Uint8Array(__privateGet(this, _buffer)));
+      __privateAdd(this, _maxPos, 0);
+      __privateSet(this, _target, target);
+    }
+    write(data) {
+      __privateMethod(this, _ensureSize, ensureSize_fn).call(this, this.pos + data.byteLength);
+      __privateGet(this, _bytes).set(data, this.pos);
+      this.pos += data.byteLength;
+      __privateSet(this, _maxPos, Math.max(__privateGet(this, _maxPos), this.pos));
+    }
+    finalize() {
+      __privateMethod(this, _ensureSize, ensureSize_fn).call(this, this.pos);
+      __privateGet(this, _target).buffer = __privateGet(this, _buffer).slice(0, Math.max(__privateGet(this, _maxPos), this.pos));
+    }
+  };
+  _target = new WeakMap();
+  _buffer = new WeakMap();
+  _bytes = new WeakMap();
+  _maxPos = new WeakMap();
+  _ensureSize = new WeakSet();
+  ensureSize_fn = function(size) {
+    let newLength = __privateGet(this, _buffer).byteLength;
+    while (newLength < size)
+      newLength *= 2;
+    if (newLength === __privateGet(this, _buffer).byteLength)
+      return;
+    let newBuffer = new ArrayBuffer(newLength);
+    let newBytes = new Uint8Array(newBuffer);
+    newBytes.set(__privateGet(this, _bytes), 0);
+    __privateSet(this, _buffer, newBuffer);
+    __privateSet(this, _bytes, newBytes);
+  };
+  var DEFAULT_CHUNK_SIZE = 2 ** 24;
+  var MAX_CHUNKS_AT_ONCE = 2;
+  var _target2, _sections, _chunked, _chunkSize, _chunks, _writeDataIntoChunks, writeDataIntoChunks_fn, _insertSectionIntoChunk, insertSectionIntoChunk_fn, _createChunk, createChunk_fn, _flushChunks, flushChunks_fn;
+  var StreamTargetWriter = class extends Writer {
+    constructor(target) {
+      super();
+      __privateAdd(this, _writeDataIntoChunks);
+      __privateAdd(this, _insertSectionIntoChunk);
+      __privateAdd(this, _createChunk);
+      __privateAdd(this, _flushChunks);
+      __privateAdd(this, _target2, void 0);
+      __privateAdd(this, _sections, []);
+      __privateAdd(this, _chunked, void 0);
+      __privateAdd(this, _chunkSize, void 0);
+      /**
+       * The data is divided up into fixed-size chunks, whose contents are first filled in RAM and then flushed out.
+       * A chunk is flushed if all of its contents have been written.
+       */
+      __privateAdd(this, _chunks, []);
+      __privateSet(this, _target2, target);
+      __privateSet(this, _chunked, target.options?.chunked ?? false);
+      __privateSet(this, _chunkSize, target.options?.chunkSize ?? DEFAULT_CHUNK_SIZE);
+    }
+    write(data) {
+      __privateGet(this, _sections).push({
+        data: data.slice(),
+        start: this.pos
+      });
+      this.pos += data.byteLength;
+    }
+    flush() {
+      if (__privateGet(this, _sections).length === 0)
+        return;
+      let chunks = [];
+      let sorted = [...__privateGet(this, _sections)].sort((a, b) => a.start - b.start);
+      chunks.push({
+        start: sorted[0].start,
+        size: sorted[0].data.byteLength
+      });
+      for (let i = 1; i < sorted.length; i++) {
+        let lastChunk = chunks[chunks.length - 1];
+        let section = sorted[i];
+        if (section.start <= lastChunk.start + lastChunk.size) {
+          lastChunk.size = Math.max(lastChunk.size, section.start + section.data.byteLength - lastChunk.start);
+        } else {
+          chunks.push({
+            start: section.start,
+            size: section.data.byteLength
+          });
+        }
+      }
+      for (let chunk of chunks) {
+        chunk.data = new Uint8Array(chunk.size);
+        for (let section of __privateGet(this, _sections)) {
+          if (chunk.start <= section.start && section.start < chunk.start + chunk.size) {
+            chunk.data.set(section.data, section.start - chunk.start);
+          }
+        }
+        if (__privateGet(this, _chunked)) {
+          __privateMethod(this, _writeDataIntoChunks, writeDataIntoChunks_fn).call(this, chunk.data, chunk.start);
+          __privateMethod(this, _flushChunks, flushChunks_fn).call(this);
+        } else {
+          __privateGet(this, _target2).options.onData?.(chunk.data, chunk.start);
+        }
+      }
+      __privateGet(this, _sections).length = 0;
+    }
+    finalize() {
+      if (__privateGet(this, _chunked)) {
+        __privateMethod(this, _flushChunks, flushChunks_fn).call(this, true);
+      }
+    }
+  };
+  _target2 = new WeakMap();
+  _sections = new WeakMap();
+  _chunked = new WeakMap();
+  _chunkSize = new WeakMap();
+  _chunks = new WeakMap();
+  _writeDataIntoChunks = new WeakSet();
+  writeDataIntoChunks_fn = function(data, position) {
+    let chunkIndex = __privateGet(this, _chunks).findIndex((x) => x.start <= position && position < x.start + __privateGet(this, _chunkSize));
+    if (chunkIndex === -1)
+      chunkIndex = __privateMethod(this, _createChunk, createChunk_fn).call(this, position);
+    let chunk = __privateGet(this, _chunks)[chunkIndex];
+    let relativePosition = position - chunk.start;
+    let toWrite = data.subarray(0, Math.min(__privateGet(this, _chunkSize) - relativePosition, data.byteLength));
+    chunk.data.set(toWrite, relativePosition);
+    let section = {
+      start: relativePosition,
+      end: relativePosition + toWrite.byteLength
+    };
+    __privateMethod(this, _insertSectionIntoChunk, insertSectionIntoChunk_fn).call(this, chunk, section);
+    if (chunk.written[0].start === 0 && chunk.written[0].end === __privateGet(this, _chunkSize)) {
+      chunk.shouldFlush = true;
+    }
+    if (__privateGet(this, _chunks).length > MAX_CHUNKS_AT_ONCE) {
+      for (let i = 0; i < __privateGet(this, _chunks).length - 1; i++) {
+        __privateGet(this, _chunks)[i].shouldFlush = true;
+      }
+      __privateMethod(this, _flushChunks, flushChunks_fn).call(this);
+    }
+    if (toWrite.byteLength < data.byteLength) {
+      __privateMethod(this, _writeDataIntoChunks, writeDataIntoChunks_fn).call(this, data.subarray(toWrite.byteLength), position + toWrite.byteLength);
+    }
+  };
+  _insertSectionIntoChunk = new WeakSet();
+  insertSectionIntoChunk_fn = function(chunk, section) {
+    let low = 0;
+    let high = chunk.written.length - 1;
+    let index = -1;
+    while (low <= high) {
+      let mid = Math.floor(low + (high - low + 1) / 2);
+      if (chunk.written[mid].start <= section.start) {
+        low = mid + 1;
+        index = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    chunk.written.splice(index + 1, 0, section);
+    if (index === -1 || chunk.written[index].end < section.start)
+      index++;
+    while (index < chunk.written.length - 1 && chunk.written[index].end >= chunk.written[index + 1].start) {
+      chunk.written[index].end = Math.max(chunk.written[index].end, chunk.written[index + 1].end);
+      chunk.written.splice(index + 1, 1);
+    }
+  };
+  _createChunk = new WeakSet();
+  createChunk_fn = function(includesPosition) {
+    let start = Math.floor(includesPosition / __privateGet(this, _chunkSize)) * __privateGet(this, _chunkSize);
+    let chunk = {
+      start,
+      data: new Uint8Array(__privateGet(this, _chunkSize)),
+      written: [],
+      shouldFlush: false
+    };
+    __privateGet(this, _chunks).push(chunk);
+    __privateGet(this, _chunks).sort((a, b) => a.start - b.start);
+    return __privateGet(this, _chunks).indexOf(chunk);
+  };
+  _flushChunks = new WeakSet();
+  flushChunks_fn = function(force = false) {
+    for (let i = 0; i < __privateGet(this, _chunks).length; i++) {
+      let chunk = __privateGet(this, _chunks)[i];
+      if (!chunk.shouldFlush && !force)
+        continue;
+      for (let section of chunk.written) {
+        __privateGet(this, _target2).options.onData?.(
+          chunk.data.subarray(section.start, section.end),
+          chunk.start + section.start
+        );
+      }
+      __privateGet(this, _chunks).splice(i--, 1);
+    }
+  };
+  var FileSystemWritableFileStreamTargetWriter = class extends StreamTargetWriter {
+    constructor(target) {
+      super(new StreamTarget({
+        onData: (data, position) => target.stream.write({
+          type: "write",
+          data,
+          position
+        }),
+        chunked: true,
+        chunkSize: target.options?.chunkSize
+      }));
+    }
+  };
+
+  // src/muxer.ts
+  var GLOBAL_TIMESCALE = 1e3;
+  var SUPPORTED_VIDEO_CODECS = ["avc", "hevc", "vp9", "av1"];
+  var SUPPORTED_AUDIO_CODECS = ["aac", "opus"];
+  var TIMESTAMP_OFFSET = 2082844800;
+  var FIRST_TIMESTAMP_BEHAVIORS = ["strict", "offset", "cross-track-offset"];
+  var _options, _writer, _ftypSize, _mdat, _videoTrack, _audioTrack, _creationTime, _finalizedChunks, _nextFragmentNumber, _videoSampleQueue, _audioSampleQueue, _finalized, _validateOptions, validateOptions_fn, _writeHeader, writeHeader_fn, _computeMoovSizeUpperBound, computeMoovSizeUpperBound_fn, _prepareTracks, prepareTracks_fn, _generateMpeg4AudioSpecificConfig, generateMpeg4AudioSpecificConfig_fn, _createSampleForTrack, createSampleForTrack_fn, _addSampleToTrack, addSampleToTrack_fn, _validateTimestamp, validateTimestamp_fn, _finalizeCurrentChunk, finalizeCurrentChunk_fn, _finalizeFragment, finalizeFragment_fn, _maybeFlushStreamingTargetWriter, maybeFlushStreamingTargetWriter_fn, _ensureNotFinalized, ensureNotFinalized_fn;
+  var Muxer = class {
+    constructor(options) {
+      __privateAdd(this, _validateOptions);
+      __privateAdd(this, _writeHeader);
+      __privateAdd(this, _computeMoovSizeUpperBound);
+      __privateAdd(this, _prepareTracks);
+      // https://wiki.multimedia.cx/index.php/MPEG-4_Audio
+      __privateAdd(this, _generateMpeg4AudioSpecificConfig);
+      __privateAdd(this, _createSampleForTrack);
+      __privateAdd(this, _addSampleToTrack);
+      __privateAdd(this, _validateTimestamp);
+      __privateAdd(this, _finalizeCurrentChunk);
+      __privateAdd(this, _finalizeFragment);
+      __privateAdd(this, _maybeFlushStreamingTargetWriter);
+      __privateAdd(this, _ensureNotFinalized);
+      __privateAdd(this, _options, void 0);
+      __privateAdd(this, _writer, void 0);
+      __privateAdd(this, _ftypSize, void 0);
+      __privateAdd(this, _mdat, void 0);
+      __privateAdd(this, _videoTrack, null);
+      __privateAdd(this, _audioTrack, null);
+      __privateAdd(this, _creationTime, Math.floor(Date.now() / 1e3) + TIMESTAMP_OFFSET);
+      __privateAdd(this, _finalizedChunks, []);
+      // Fields for fragmented MP4:
+      __privateAdd(this, _nextFragmentNumber, 1);
+      __privateAdd(this, _videoSampleQueue, []);
+      __privateAdd(this, _audioSampleQueue, []);
+      __privateAdd(this, _finalized, false);
+      __privateMethod(this, _validateOptions, validateOptions_fn).call(this, options);
+      options.video = deepClone(options.video);
+      options.audio = deepClone(options.audio);
+      options.fastStart = deepClone(options.fastStart);
+      this.target = options.target;
+      __privateSet(this, _options, {
+        firstTimestampBehavior: "strict",
+        ...options
+      });
+      if (options.target instanceof ArrayBufferTarget) {
+        __privateSet(this, _writer, new ArrayBufferTargetWriter(options.target));
+      } else if (options.target instanceof StreamTarget) {
+        __privateSet(this, _writer, new StreamTargetWriter(options.target));
+      } else if (options.target instanceof FileSystemWritableFileStreamTarget) {
+        __privateSet(this, _writer, new FileSystemWritableFileStreamTargetWriter(options.target));
+      } else {
+        throw new Error(`Invalid target: ${options.target}`);
+      }
+      __privateMethod(this, _prepareTracks, prepareTracks_fn).call(this);
+      __privateMethod(this, _writeHeader, writeHeader_fn).call(this);
+    }
+    addVideoChunk(sample, meta, timestamp, compositionTimeOffset) {
+      if (!(sample instanceof EncodedVideoChunk)) {
+        throw new TypeError("addVideoChunk's first argument (sample) must be of type EncodedVideoChunk.");
+      }
+      if (meta && typeof meta !== "object") {
+        throw new TypeError("addVideoChunk's second argument (meta), when provided, must be an object.");
+      }
+      if (timestamp !== void 0 && (!Number.isFinite(timestamp) || timestamp < 0)) {
+        throw new TypeError(
+          "addVideoChunk's third argument (timestamp), when provided, must be a non-negative real number."
+        );
+      }
+      if (compositionTimeOffset !== void 0 && !Number.isFinite(compositionTimeOffset)) {
+        throw new TypeError(
+          "addVideoChunk's fourth argument (compositionTimeOffset), when provided, must be a real number."
+        );
+      }
+      let data = new Uint8Array(sample.byteLength);
+      sample.copyTo(data);
+      this.addVideoChunkRaw(
+        data,
+        sample.type,
+        timestamp ?? sample.timestamp,
+        sample.duration,
+        meta,
+        compositionTimeOffset
+      );
+    }
+    addVideoChunkRaw(data, type, timestamp, duration, meta, compositionTimeOffset) {
+      if (!(data instanceof Uint8Array)) {
+        throw new TypeError("addVideoChunkRaw's first argument (data) must be an instance of Uint8Array.");
+      }
+      if (type !== "key" && type !== "delta") {
+        throw new TypeError("addVideoChunkRaw's second argument (type) must be either 'key' or 'delta'.");
+      }
+      if (!Number.isFinite(timestamp) || timestamp < 0) {
+        throw new TypeError("addVideoChunkRaw's third argument (timestamp) must be a non-negative real number.");
+      }
+      if (!Number.isFinite(duration) || duration < 0) {
+        throw new TypeError("addVideoChunkRaw's fourth argument (duration) must be a non-negative real number.");
+      }
+      if (meta && typeof meta !== "object") {
+        throw new TypeError("addVideoChunkRaw's fifth argument (meta), when provided, must be an object.");
+      }
+      if (compositionTimeOffset !== void 0 && !Number.isFinite(compositionTimeOffset)) {
+        throw new TypeError(
+          "addVideoChunkRaw's sixth argument (compositionTimeOffset), when provided, must be a real number."
+        );
+      }
+      __privateMethod(this, _ensureNotFinalized, ensureNotFinalized_fn).call(this);
+      if (!__privateGet(this, _options).video)
+        throw new Error("No video track declared.");
+      if (typeof __privateGet(this, _options).fastStart === "object" && __privateGet(this, _videoTrack).samples.length === __privateGet(this, _options).fastStart.expectedVideoChunks) {
+        throw new Error(`Cannot add more video chunks than specified in 'fastStart' (${__privateGet(this, _options).fastStart.expectedVideoChunks}).`);
+      }
+      let videoSample = __privateMethod(this, _createSampleForTrack, createSampleForTrack_fn).call(this, __privateGet(this, _videoTrack), data, type, timestamp, duration, meta, compositionTimeOffset);
+      if (__privateGet(this, _options).fastStart === "fragmented" && __privateGet(this, _audioTrack)) {
+        while (__privateGet(this, _audioSampleQueue).length > 0 && __privateGet(this, _audioSampleQueue)[0].decodeTimestamp <= videoSample.decodeTimestamp) {
+          let audioSample = __privateGet(this, _audioSampleQueue).shift();
+          __privateMethod(this, _addSampleToTrack, addSampleToTrack_fn).call(this, __privateGet(this, _audioTrack), audioSample);
+        }
+        if (videoSample.decodeTimestamp <= __privateGet(this, _audioTrack).lastDecodeTimestamp) {
+          __privateMethod(this, _addSampleToTrack, addSampleToTrack_fn).call(this, __privateGet(this, _videoTrack), videoSample);
+        } else {
+          __privateGet(this, _videoSampleQueue).push(videoSample);
+        }
+      } else {
+        __privateMethod(this, _addSampleToTrack, addSampleToTrack_fn).call(this, __privateGet(this, _videoTrack), videoSample);
+      }
+    }
+    addAudioChunk(sample, meta, timestamp) {
+      if (!(sample instanceof EncodedAudioChunk)) {
+        throw new TypeError("addAudioChunk's first argument (sample) must be of type EncodedAudioChunk.");
+      }
+      if (meta && typeof meta !== "object") {
+        throw new TypeError("addAudioChunk's second argument (meta), when provided, must be an object.");
+      }
+      if (timestamp !== void 0 && (!Number.isFinite(timestamp) || timestamp < 0)) {
+        throw new TypeError(
+          "addAudioChunk's third argument (timestamp), when provided, must be a non-negative real number."
+        );
+      }
+      let data = new Uint8Array(sample.byteLength);
+      sample.copyTo(data);
+      this.addAudioChunkRaw(data, sample.type, timestamp ?? sample.timestamp, sample.duration, meta);
+    }
+    addAudioChunkRaw(data, type, timestamp, duration, meta) {
+      if (!(data instanceof Uint8Array)) {
+        throw new TypeError("addAudioChunkRaw's first argument (data) must be an instance of Uint8Array.");
+      }
+      if (type !== "key" && type !== "delta") {
+        throw new TypeError("addAudioChunkRaw's second argument (type) must be either 'key' or 'delta'.");
+      }
+      if (!Number.isFinite(timestamp) || timestamp < 0) {
+        throw new TypeError("addAudioChunkRaw's third argument (timestamp) must be a non-negative real number.");
+      }
+      if (!Number.isFinite(duration) || duration < 0) {
+        throw new TypeError("addAudioChunkRaw's fourth argument (duration) must be a non-negative real number.");
+      }
+      if (meta && typeof meta !== "object") {
+        throw new TypeError("addAudioChunkRaw's fifth argument (meta), when provided, must be an object.");
+      }
+      __privateMethod(this, _ensureNotFinalized, ensureNotFinalized_fn).call(this);
+      if (!__privateGet(this, _options).audio)
+        throw new Error("No audio track declared.");
+      if (typeof __privateGet(this, _options).fastStart === "object" && __privateGet(this, _audioTrack).samples.length === __privateGet(this, _options).fastStart.expectedAudioChunks) {
+        throw new Error(`Cannot add more audio chunks than specified in 'fastStart' (${__privateGet(this, _options).fastStart.expectedAudioChunks}).`);
+      }
+      let audioSample = __privateMethod(this, _createSampleForTrack, createSampleForTrack_fn).call(this, __privateGet(this, _audioTrack), data, type, timestamp, duration, meta);
+      if (__privateGet(this, _options).fastStart === "fragmented" && __privateGet(this, _videoTrack)) {
+        while (__privateGet(this, _videoSampleQueue).length > 0 && __privateGet(this, _videoSampleQueue)[0].decodeTimestamp <= audioSample.decodeTimestamp) {
+          let videoSample = __privateGet(this, _videoSampleQueue).shift();
+          __privateMethod(this, _addSampleToTrack, addSampleToTrack_fn).call(this, __privateGet(this, _videoTrack), videoSample);
+        }
+        if (audioSample.decodeTimestamp <= __privateGet(this, _videoTrack).lastDecodeTimestamp) {
+          __privateMethod(this, _addSampleToTrack, addSampleToTrack_fn).call(this, __privateGet(this, _audioTrack), audioSample);
+        } else {
+          __privateGet(this, _audioSampleQueue).push(audioSample);
+        }
+      } else {
+        __privateMethod(this, _addSampleToTrack, addSampleToTrack_fn).call(this, __privateGet(this, _audioTrack), audioSample);
+      }
+    }
+    /** Finalizes the file, making it ready for use. Must be called after all video and audio chunks have been added. */
+    finalize() {
+      if (__privateGet(this, _finalized)) {
+        throw new Error("Cannot finalize a muxer more than once.");
+      }
+      if (__privateGet(this, _options).fastStart === "fragmented") {
+        for (let videoSample of __privateGet(this, _videoSampleQueue))
+          __privateMethod(this, _addSampleToTrack, addSampleToTrack_fn).call(this, __privateGet(this, _videoTrack), videoSample);
+        for (let audioSample of __privateGet(this, _audioSampleQueue))
+          __privateMethod(this, _addSampleToTrack, addSampleToTrack_fn).call(this, __privateGet(this, _audioTrack), audioSample);
+        __privateMethod(this, _finalizeFragment, finalizeFragment_fn).call(this, false);
+      } else {
+        if (__privateGet(this, _videoTrack))
+          __privateMethod(this, _finalizeCurrentChunk, finalizeCurrentChunk_fn).call(this, __privateGet(this, _videoTrack));
+        if (__privateGet(this, _audioTrack))
+          __privateMethod(this, _finalizeCurrentChunk, finalizeCurrentChunk_fn).call(this, __privateGet(this, _audioTrack));
+      }
+      let tracks = [__privateGet(this, _videoTrack), __privateGet(this, _audioTrack)].filter(Boolean);
+      if (__privateGet(this, _options).fastStart === "in-memory") {
+        let mdatSize;
+        for (let i = 0; i < 2; i++) {
+          let movieBox2 = moov(tracks, __privateGet(this, _creationTime));
+          let movieBoxSize = __privateGet(this, _writer).measureBox(movieBox2);
+          mdatSize = __privateGet(this, _writer).measureBox(__privateGet(this, _mdat));
+          let currentChunkPos = __privateGet(this, _writer).pos + movieBoxSize + mdatSize;
+          for (let chunk of __privateGet(this, _finalizedChunks)) {
+            chunk.offset = currentChunkPos;
+            for (let { data } of chunk.samples) {
+              currentChunkPos += data.byteLength;
+              mdatSize += data.byteLength;
+            }
+          }
+          if (currentChunkPos < 2 ** 32)
+            break;
+          if (mdatSize >= 2 ** 32)
+            __privateGet(this, _mdat).largeSize = true;
+        }
+        let movieBox = moov(tracks, __privateGet(this, _creationTime));
+        __privateGet(this, _writer).writeBox(movieBox);
+        __privateGet(this, _mdat).size = mdatSize;
+        __privateGet(this, _writer).writeBox(__privateGet(this, _mdat));
+        for (let chunk of __privateGet(this, _finalizedChunks)) {
+          for (let sample of chunk.samples) {
+            __privateGet(this, _writer).write(sample.data);
+            sample.data = null;
+          }
+        }
+      } else if (__privateGet(this, _options).fastStart === "fragmented") {
+        let startPos = __privateGet(this, _writer).pos;
+        let mfraBox = mfra(tracks);
+        __privateGet(this, _writer).writeBox(mfraBox);
+        let mfraBoxSize = __privateGet(this, _writer).pos - startPos;
+        __privateGet(this, _writer).seek(__privateGet(this, _writer).pos - 4);
+        __privateGet(this, _writer).writeU32(mfraBoxSize);
+      } else {
+        let mdatPos = __privateGet(this, _writer).offsets.get(__privateGet(this, _mdat));
+        let mdatSize = __privateGet(this, _writer).pos - mdatPos;
+        __privateGet(this, _mdat).size = mdatSize;
+        __privateGet(this, _mdat).largeSize = mdatSize >= 2 ** 32;
+        __privateGet(this, _writer).patchBox(__privateGet(this, _mdat));
+        let movieBox = moov(tracks, __privateGet(this, _creationTime));
+        if (typeof __privateGet(this, _options).fastStart === "object") {
+          __privateGet(this, _writer).seek(__privateGet(this, _ftypSize));
+          __privateGet(this, _writer).writeBox(movieBox);
+          let remainingBytes = mdatPos - __privateGet(this, _writer).pos;
+          __privateGet(this, _writer).writeBox(free(remainingBytes));
+        } else {
+          __privateGet(this, _writer).writeBox(movieBox);
+        }
+      }
+      __privateMethod(this, _maybeFlushStreamingTargetWriter, maybeFlushStreamingTargetWriter_fn).call(this);
+      __privateGet(this, _writer).finalize();
+      __privateSet(this, _finalized, true);
+    }
+  };
+  _options = new WeakMap();
+  _writer = new WeakMap();
+  _ftypSize = new WeakMap();
+  _mdat = new WeakMap();
+  _videoTrack = new WeakMap();
+  _audioTrack = new WeakMap();
+  _creationTime = new WeakMap();
+  _finalizedChunks = new WeakMap();
+  _nextFragmentNumber = new WeakMap();
+  _videoSampleQueue = new WeakMap();
+  _audioSampleQueue = new WeakMap();
+  _finalized = new WeakMap();
+  _validateOptions = new WeakSet();
+  validateOptions_fn = function(options) {
+    if (typeof options !== "object") {
+      throw new TypeError("The muxer requires an options object to be passed to its constructor.");
+    }
+    if (!(options.target instanceof Target)) {
+      throw new TypeError("The target must be provided and an instance of Target.");
+    }
+    if (options.video) {
+      if (!SUPPORTED_VIDEO_CODECS.includes(options.video.codec)) {
+        throw new TypeError(`Unsupported video codec: ${options.video.codec}`);
+      }
+      if (!Number.isInteger(options.video.width) || options.video.width <= 0) {
+        throw new TypeError(`Invalid video width: ${options.video.width}. Must be a positive integer.`);
+      }
+      if (!Number.isInteger(options.video.height) || options.video.height <= 0) {
+        throw new TypeError(`Invalid video height: ${options.video.height}. Must be a positive integer.`);
+      }
+      const videoRotation = options.video.rotation;
+      if (typeof videoRotation === "number" && ![0, 90, 180, 270].includes(videoRotation)) {
+        throw new TypeError(`Invalid video rotation: ${videoRotation}. Has to be 0, 90, 180 or 270.`);
+      } else if (Array.isArray(videoRotation) && (videoRotation.length !== 9 || videoRotation.some((value) => typeof value !== "number"))) {
+        throw new TypeError(`Invalid video transformation matrix: ${videoRotation.join()}`);
+      }
+      if (options.video.frameRate !== void 0 && (!Number.isInteger(options.video.frameRate) || options.video.frameRate <= 0)) {
+        throw new TypeError(
+          `Invalid video frame rate: ${options.video.frameRate}. Must be a positive integer.`
+        );
+      }
+    }
+    if (options.audio) {
+      if (!SUPPORTED_AUDIO_CODECS.includes(options.audio.codec)) {
+        throw new TypeError(`Unsupported audio codec: ${options.audio.codec}`);
+      }
+      if (!Number.isInteger(options.audio.numberOfChannels) || options.audio.numberOfChannels <= 0) {
+        throw new TypeError(
+          `Invalid number of audio channels: ${options.audio.numberOfChannels}. Must be a positive integer.`
+        );
+      }
+      if (!Number.isInteger(options.audio.sampleRate) || options.audio.sampleRate <= 0) {
+        throw new TypeError(
+          `Invalid audio sample rate: ${options.audio.sampleRate}. Must be a positive integer.`
+        );
+      }
+    }
+    if (options.firstTimestampBehavior && !FIRST_TIMESTAMP_BEHAVIORS.includes(options.firstTimestampBehavior)) {
+      throw new TypeError(`Invalid first timestamp behavior: ${options.firstTimestampBehavior}`);
+    }
+    if (typeof options.fastStart === "object") {
+      if (options.video) {
+        if (options.fastStart.expectedVideoChunks === void 0) {
+          throw new TypeError(`'fastStart' is an object but is missing property 'expectedVideoChunks'.`);
+        } else if (!Number.isInteger(options.fastStart.expectedVideoChunks) || options.fastStart.expectedVideoChunks < 0) {
+          throw new TypeError(`'expectedVideoChunks' must be a non-negative integer.`);
+        }
+      }
+      if (options.audio) {
+        if (options.fastStart.expectedAudioChunks === void 0) {
+          throw new TypeError(`'fastStart' is an object but is missing property 'expectedAudioChunks'.`);
+        } else if (!Number.isInteger(options.fastStart.expectedAudioChunks) || options.fastStart.expectedAudioChunks < 0) {
+          throw new TypeError(`'expectedAudioChunks' must be a non-negative integer.`);
+        }
+      }
+    } else if (![false, "in-memory", "fragmented"].includes(options.fastStart)) {
+      throw new TypeError(`'fastStart' option must be false, 'in-memory', 'fragmented' or an object.`);
+    }
+    if (options.minFragmentDuration !== void 0 && (!Number.isFinite(options.minFragmentDuration) || options.minFragmentDuration < 0)) {
+      throw new TypeError(`'minFragmentDuration' must be a non-negative number.`);
+    }
+  };
+  _writeHeader = new WeakSet();
+  writeHeader_fn = function() {
+    __privateGet(this, _writer).writeBox(ftyp({
+      holdsAvc: __privateGet(this, _options).video?.codec === "avc",
+      fragmented: __privateGet(this, _options).fastStart === "fragmented"
+    }));
+    __privateSet(this, _ftypSize, __privateGet(this, _writer).pos);
+    if (__privateGet(this, _options).fastStart === "in-memory") {
+      __privateSet(this, _mdat, mdat(false));
+    } else if (__privateGet(this, _options).fastStart === "fragmented") {
+    } else {
+      if (typeof __privateGet(this, _options).fastStart === "object") {
+        let moovSizeUpperBound = __privateMethod(this, _computeMoovSizeUpperBound, computeMoovSizeUpperBound_fn).call(this);
+        __privateGet(this, _writer).seek(__privateGet(this, _writer).pos + moovSizeUpperBound);
+      }
+      __privateSet(this, _mdat, mdat(true));
+      __privateGet(this, _writer).writeBox(__privateGet(this, _mdat));
+    }
+    __privateMethod(this, _maybeFlushStreamingTargetWriter, maybeFlushStreamingTargetWriter_fn).call(this);
+  };
+  _computeMoovSizeUpperBound = new WeakSet();
+  computeMoovSizeUpperBound_fn = function() {
+    if (typeof __privateGet(this, _options).fastStart !== "object")
+      return;
+    let upperBound = 0;
+    let sampleCounts = [
+      __privateGet(this, _options).fastStart.expectedVideoChunks,
+      __privateGet(this, _options).fastStart.expectedAudioChunks
+    ];
+    for (let n of sampleCounts) {
+      if (!n)
+        continue;
+      upperBound += (4 + 4) * Math.ceil(2 / 3 * n);
+      upperBound += 4 * n;
+      upperBound += (4 + 4 + 4) * Math.ceil(2 / 3 * n);
+      upperBound += 4 * n;
+      upperBound += 8 * n;
+    }
+    upperBound += 4096;
+    return upperBound;
+  };
+  _prepareTracks = new WeakSet();
+  prepareTracks_fn = function() {
+    if (__privateGet(this, _options).video) {
+      __privateSet(this, _videoTrack, {
+        id: 1,
+        info: {
+          type: "video",
+          codec: __privateGet(this, _options).video.codec,
+          width: __privateGet(this, _options).video.width,
+          height: __privateGet(this, _options).video.height,
+          rotation: __privateGet(this, _options).video.rotation ?? 0,
+          decoderConfig: null
+        },
+        // The fallback contains many common frame rates as factors
+        timescale: __privateGet(this, _options).video.frameRate ?? 57600,
+        samples: [],
+        finalizedChunks: [],
+        currentChunk: null,
+        firstDecodeTimestamp: void 0,
+        lastDecodeTimestamp: -1,
+        timeToSampleTable: [],
+        compositionTimeOffsetTable: [],
+        lastTimescaleUnits: null,
+        lastSample: null,
+        compactlyCodedChunkTable: []
+      });
+    }
+    if (__privateGet(this, _options).audio) {
+      __privateSet(this, _audioTrack, {
+        id: __privateGet(this, _options).video ? 2 : 1,
+        info: {
+          type: "audio",
+          codec: __privateGet(this, _options).audio.codec,
+          numberOfChannels: __privateGet(this, _options).audio.numberOfChannels,
+          sampleRate: __privateGet(this, _options).audio.sampleRate,
+          decoderConfig: null
+        },
+        timescale: __privateGet(this, _options).audio.sampleRate,
+        samples: [],
+        finalizedChunks: [],
+        currentChunk: null,
+        firstDecodeTimestamp: void 0,
+        lastDecodeTimestamp: -1,
+        timeToSampleTable: [],
+        compositionTimeOffsetTable: [],
+        lastTimescaleUnits: null,
+        lastSample: null,
+        compactlyCodedChunkTable: []
+      });
+      if (__privateGet(this, _options).audio.codec === "aac") {
+        let guessedCodecPrivate = __privateMethod(this, _generateMpeg4AudioSpecificConfig, generateMpeg4AudioSpecificConfig_fn).call(
+          this,
+          2,
+          // Object type for AAC-LC, since it's the most common
+          __privateGet(this, _options).audio.sampleRate,
+          __privateGet(this, _options).audio.numberOfChannels
+        );
+        __privateGet(this, _audioTrack).info.decoderConfig = {
+          codec: __privateGet(this, _options).audio.codec,
+          description: guessedCodecPrivate,
+          numberOfChannels: __privateGet(this, _options).audio.numberOfChannels,
+          sampleRate: __privateGet(this, _options).audio.sampleRate
+        };
+      }
+    }
+  };
+  _generateMpeg4AudioSpecificConfig = new WeakSet();
+  generateMpeg4AudioSpecificConfig_fn = function(objectType, sampleRate, numberOfChannels) {
+    let frequencyIndices = [96e3, 88200, 64e3, 48e3, 44100, 32e3, 24e3, 22050, 16e3, 12e3, 11025, 8e3, 7350];
+    let frequencyIndex = frequencyIndices.indexOf(sampleRate);
+    let channelConfig = numberOfChannels;
+    let configBits = "";
+    configBits += objectType.toString(2).padStart(5, "0");
+    configBits += frequencyIndex.toString(2).padStart(4, "0");
+    if (frequencyIndex === 15)
+      configBits += sampleRate.toString(2).padStart(24, "0");
+    configBits += channelConfig.toString(2).padStart(4, "0");
+    let paddingLength = Math.ceil(configBits.length / 8) * 8;
+    configBits = configBits.padEnd(paddingLength, "0");
+    let configBytes = new Uint8Array(configBits.length / 8);
+    for (let i = 0; i < configBits.length; i += 8) {
+      configBytes[i / 8] = parseInt(configBits.slice(i, i + 8), 2);
+    }
+    return configBytes;
+  };
+  _createSampleForTrack = new WeakSet();
+  createSampleForTrack_fn = function(track, data, type, timestamp, duration, meta, compositionTimeOffset) {
+    let presentationTimestampInSeconds = timestamp / 1e6;
+    let decodeTimestampInSeconds = (timestamp - (compositionTimeOffset ?? 0)) / 1e6;
+    let durationInSeconds = duration / 1e6;
+    let adjusted = __privateMethod(this, _validateTimestamp, validateTimestamp_fn).call(this, presentationTimestampInSeconds, decodeTimestampInSeconds, track);
+    presentationTimestampInSeconds = adjusted.presentationTimestamp;
+    decodeTimestampInSeconds = adjusted.decodeTimestamp;
+    if (meta?.decoderConfig) {
+      if (track.info.decoderConfig === null) {
+        track.info.decoderConfig = meta.decoderConfig;
+      } else {
+        Object.assign(track.info.decoderConfig, meta.decoderConfig);
+      }
+    }
+    let sample = {
+      presentationTimestamp: presentationTimestampInSeconds,
+      decodeTimestamp: decodeTimestampInSeconds,
+      duration: durationInSeconds,
+      data,
+      size: data.byteLength,
+      type,
+      // Will be refined once the next sample comes in
+      timescaleUnitsToNextSample: intoTimescale(durationInSeconds, track.timescale)
+    };
+    return sample;
+  };
+  _addSampleToTrack = new WeakSet();
+  addSampleToTrack_fn = function(track, sample) {
+    if (__privateGet(this, _options).fastStart !== "fragmented") {
+      track.samples.push(sample);
+    }
+    const sampleCompositionTimeOffset = intoTimescale(sample.presentationTimestamp - sample.decodeTimestamp, track.timescale);
+    if (track.lastTimescaleUnits !== null) {
+      let timescaleUnits = intoTimescale(sample.decodeTimestamp, track.timescale, false);
+      let delta = Math.round(timescaleUnits - track.lastTimescaleUnits);
+      track.lastTimescaleUnits += delta;
+      track.lastSample.timescaleUnitsToNextSample = delta;
+      if (__privateGet(this, _options).fastStart !== "fragmented") {
+        let lastTableEntry = last(track.timeToSampleTable);
+        if (lastTableEntry.sampleCount === 1) {
+          lastTableEntry.sampleDelta = delta;
+          lastTableEntry.sampleCount++;
+        } else if (lastTableEntry.sampleDelta === delta) {
+          lastTableEntry.sampleCount++;
+        } else {
+          lastTableEntry.sampleCount--;
+          track.timeToSampleTable.push({
+            sampleCount: 2,
+            sampleDelta: delta
+          });
+        }
+        const lastCompositionTimeOffsetTableEntry = last(track.compositionTimeOffsetTable);
+        if (lastCompositionTimeOffsetTableEntry.sampleCompositionTimeOffset === sampleCompositionTimeOffset) {
+          lastCompositionTimeOffsetTableEntry.sampleCount++;
+        } else {
+          track.compositionTimeOffsetTable.push({
+            sampleCount: 1,
+            sampleCompositionTimeOffset
+          });
+        }
+      }
+    } else {
+      track.lastTimescaleUnits = 0;
+      if (__privateGet(this, _options).fastStart !== "fragmented") {
+        track.timeToSampleTable.push({
+          sampleCount: 1,
+          sampleDelta: intoTimescale(sample.duration, track.timescale)
+        });
+        track.compositionTimeOffsetTable.push({
+          sampleCount: 1,
+          sampleCompositionTimeOffset
+        });
+      }
+    }
+    track.lastSample = sample;
+    let beginNewChunk = false;
+    if (!track.currentChunk) {
+      beginNewChunk = true;
+    } else {
+      let currentChunkDuration = sample.presentationTimestamp - track.currentChunk.startTimestamp;
+      if (__privateGet(this, _options).fastStart === "fragmented") {
+        let mostImportantTrack = __privateGet(this, _videoTrack) ?? __privateGet(this, _audioTrack);
+        const chunkDuration = __privateGet(this, _options).minFragmentDuration ?? 1;
+        if (track === mostImportantTrack && sample.type === "key" && currentChunkDuration >= chunkDuration) {
+          beginNewChunk = true;
+          __privateMethod(this, _finalizeFragment, finalizeFragment_fn).call(this);
+        }
+      } else {
+        beginNewChunk = currentChunkDuration >= 0.5;
+      }
+    }
+    if (beginNewChunk) {
+      if (track.currentChunk) {
+        __privateMethod(this, _finalizeCurrentChunk, finalizeCurrentChunk_fn).call(this, track);
+      }
+      track.currentChunk = {
+        startTimestamp: sample.presentationTimestamp,
+        samples: []
+      };
+    }
+    track.currentChunk.samples.push(sample);
+  };
+  _validateTimestamp = new WeakSet();
+  validateTimestamp_fn = function(presentationTimestamp, decodeTimestamp, track) {
+    const strictTimestampBehavior = __privateGet(this, _options).firstTimestampBehavior === "strict";
+    const noLastDecodeTimestamp = track.lastDecodeTimestamp === -1;
+    const timestampNonZero = decodeTimestamp !== 0;
+    if (strictTimestampBehavior && noLastDecodeTimestamp && timestampNonZero) {
+      throw new Error(
+        `The first chunk for your media track must have a timestamp of 0 (received DTS=${decodeTimestamp}).Non-zero first timestamps are often caused by directly piping frames or audio data from a MediaStreamTrack into the encoder. Their timestamps are typically relative to the age of thedocument, which is probably what you want.
+
+If you want to offset all timestamps of a track such that the first one is zero, set firstTimestampBehavior: 'offset' in the options.
+`
+      );
+    } else if (__privateGet(this, _options).firstTimestampBehavior === "offset" || __privateGet(this, _options).firstTimestampBehavior === "cross-track-offset") {
+      if (track.firstDecodeTimestamp === void 0) {
+        track.firstDecodeTimestamp = decodeTimestamp;
+      }
+      let baseDecodeTimestamp;
+      if (__privateGet(this, _options).firstTimestampBehavior === "offset") {
+        baseDecodeTimestamp = track.firstDecodeTimestamp;
+      } else {
+        baseDecodeTimestamp = Math.min(
+          __privateGet(this, _videoTrack)?.firstDecodeTimestamp ?? Infinity,
+          __privateGet(this, _audioTrack)?.firstDecodeTimestamp ?? Infinity
+        );
+      }
+      decodeTimestamp -= baseDecodeTimestamp;
+      presentationTimestamp -= baseDecodeTimestamp;
+    }
+    if (decodeTimestamp < track.lastDecodeTimestamp) {
+      throw new Error(
+        `Timestamps must be monotonically increasing (DTS went from ${track.lastDecodeTimestamp * 1e6} to ${decodeTimestamp * 1e6}).`
+      );
+    }
+    track.lastDecodeTimestamp = decodeTimestamp;
+    return { presentationTimestamp, decodeTimestamp };
+  };
+  _finalizeCurrentChunk = new WeakSet();
+  finalizeCurrentChunk_fn = function(track) {
+    if (__privateGet(this, _options).fastStart === "fragmented") {
+      throw new Error("Can't finalize individual chunks if 'fastStart' is set to 'fragmented'.");
+    }
+    if (!track.currentChunk)
+      return;
+    track.finalizedChunks.push(track.currentChunk);
+    __privateGet(this, _finalizedChunks).push(track.currentChunk);
+    if (track.compactlyCodedChunkTable.length === 0 || last(track.compactlyCodedChunkTable).samplesPerChunk !== track.currentChunk.samples.length) {
+      track.compactlyCodedChunkTable.push({
+        firstChunk: track.finalizedChunks.length,
+        // 1-indexed
+        samplesPerChunk: track.currentChunk.samples.length
+      });
+    }
+    if (__privateGet(this, _options).fastStart === "in-memory") {
+      track.currentChunk.offset = 0;
+      return;
+    }
+    track.currentChunk.offset = __privateGet(this, _writer).pos;
+    for (let sample of track.currentChunk.samples) {
+      __privateGet(this, _writer).write(sample.data);
+      sample.data = null;
+    }
+    __privateMethod(this, _maybeFlushStreamingTargetWriter, maybeFlushStreamingTargetWriter_fn).call(this);
+  };
+  _finalizeFragment = new WeakSet();
+  finalizeFragment_fn = function(flushStreamingWriter = true) {
+    if (__privateGet(this, _options).fastStart !== "fragmented") {
+      throw new Error("Can't finalize a fragment unless 'fastStart' is set to 'fragmented'.");
+    }
+    let tracks = [__privateGet(this, _videoTrack), __privateGet(this, _audioTrack)].filter((track) => track && track.currentChunk);
+    if (tracks.length === 0)
+      return;
+    let fragmentNumber = __privateWrapper(this, _nextFragmentNumber)._++;
+    if (fragmentNumber === 1) {
+      let movieBox = moov(tracks, __privateGet(this, _creationTime), true);
+      __privateGet(this, _writer).writeBox(movieBox);
+    }
+    let moofOffset = __privateGet(this, _writer).pos;
+    let moofBox = moof(fragmentNumber, tracks);
+    __privateGet(this, _writer).writeBox(moofBox);
+    {
+      let mdatBox = mdat(false);
+      let totalTrackSampleSize = 0;
+      for (let track of tracks) {
+        for (let sample of track.currentChunk.samples) {
+          totalTrackSampleSize += sample.size;
+        }
+      }
+      let mdatSize = __privateGet(this, _writer).measureBox(mdatBox) + totalTrackSampleSize;
+      if (mdatSize >= 2 ** 32) {
+        mdatBox.largeSize = true;
+        mdatSize = __privateGet(this, _writer).measureBox(mdatBox) + totalTrackSampleSize;
+      }
+      mdatBox.size = mdatSize;
+      __privateGet(this, _writer).writeBox(mdatBox);
+    }
+    for (let track of tracks) {
+      track.currentChunk.offset = __privateGet(this, _writer).pos;
+      track.currentChunk.moofOffset = moofOffset;
+      for (let sample of track.currentChunk.samples) {
+        __privateGet(this, _writer).write(sample.data);
+        sample.data = null;
+      }
+    }
+    let endPos = __privateGet(this, _writer).pos;
+    __privateGet(this, _writer).seek(__privateGet(this, _writer).offsets.get(moofBox));
+    let newMoofBox = moof(fragmentNumber, tracks);
+    __privateGet(this, _writer).writeBox(newMoofBox);
+    __privateGet(this, _writer).seek(endPos);
+    for (let track of tracks) {
+      track.finalizedChunks.push(track.currentChunk);
+      __privateGet(this, _finalizedChunks).push(track.currentChunk);
+      track.currentChunk = null;
+    }
+    if (flushStreamingWriter) {
+      __privateMethod(this, _maybeFlushStreamingTargetWriter, maybeFlushStreamingTargetWriter_fn).call(this);
+    }
+  };
+  _maybeFlushStreamingTargetWriter = new WeakSet();
+  maybeFlushStreamingTargetWriter_fn = function() {
+    if (__privateGet(this, _writer) instanceof StreamTargetWriter) {
+      __privateGet(this, _writer).flush();
+    }
+  };
+  _ensureNotFinalized = new WeakSet();
+  ensureNotFinalized_fn = function() {
+    if (__privateGet(this, _finalized)) {
+      throw new Error("Cannot add new video or audio chunks after the file has been finalized.");
+    }
+  };
+  return __toCommonJS(src_exports);
+})();
+
+</script>
+<script>
+(()=>{"use strict";
+const $=id=>document.getElementById(id);
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const ease=x=>1-Math.pow(1-clamp(x),3);
+const backEase=x=>{x=clamp(x);const c1=1.7,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)};
+const ss=(a,b,t)=>{const x=clamp((t-a)/(b-a));return x*x*(3-2*x)};
+const fmt=s=>{s=Math.max(0,s);const h=Math.floor(s/3600),m=Math.floor(s/60)%60,x=Math.floor(s%60);return h?`${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`:`${m}:${String(x).padStart(2,'0')}`};
+function toast(m,ms=3600){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),ms)}
+const store={get(k,d){try{const v=localStorage.getItem('wifvm:'+k);return v==null?d:JSON.parse(v)}catch(_){return d}},set(k,v){try{localStorage.setItem('wifvm:'+k,JSON.stringify(v));return true}catch(_){return false}}};
+const hashStr=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0};
+function rnd(seed){let a=(seed>>>0)||1;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+const TAU=Math.PI*2;
+const FONT='Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif';
+const norm=s=>s.toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9\s]+/g,' ').split(/\s+/).filter(Boolean);
+
+/* ================= story → chapters + narration units ================= */
+const NUMHEAD=/^(?:#{1,3}\s*)?(chapter|part|episode|section|story|scenario)\s*(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b\s*[:.\-–—)]?\s*(.*)$/i;
+function headKind(l){if(l.length>140)return null;
+  if(/^#{1,3}\s+\S/.test(l))return'chapter';
+  if(NUMHEAD.test(l)&&(l.length<=70||!/[.!]$/.test(l)))return'chapter';
+  if(/^what\s+if\b/i.test(l)&&/\?\s*$/.test(l)&&l.length<=110)return'whatif';
+  return null}
+function splitLong(l){if(l.length<=140)return[l];const out=[];let cur='';(l.match(/[^.!?…]+[.!?…]+[”"’)]*\s*|[^.!?…]+$/g)||[l]).forEach(p=>{if(cur.length+p.length>140&&cur){out.push(cur.trim());cur=p}else cur+=p});if(cur.trim())out.push(cur.trim());return out}
+let STORY={units:[],chapters:[]};
+function parseStory(text,mode){
+  const lines=text.replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean);
+  const kinds=lines.map(headKind);
+  if(mode==='auto'){const nc=kinds.filter(k=>k==='chapter').length,nw=kinds.filter(k=>k==='whatif').length;mode=nc>=1?'chapter':nw>=2?'whatif':'none'}
+  const units=[],chapters=[];let cur=null,nWhat=0;
+  const newChap=(title,label,intro)=>{cur={title,label,intro,text:'',firstUnit:units.length,i:chapters.length};chapters.push(cur)};
+  lines.forEach((l,li)=>{const k=kinds[li];const isHead=mode!=='none'&&k&&(k===mode||(mode==='chapter'&&k==='chapter'));
+    if(isHead){let title=l.replace(/^#{1,3}\s*/,''),label='';const m=title.match(NUMHEAD);
+      if(m){label=m[1][0].toUpperCase()+m[1].slice(1).toLowerCase()+' '+m[2];title=m[3]||label}else{nWhat++;label='Part '+(chapters.filter(c=>!c.intro).length+1)}
+      newChap(title.trim(),label,false);units.push({t:l,head:true,chap:cur.i});cur.text+=title+'\n';return}
+    if(!cur)newChap('', '',true);
+    splitLong(l).forEach(p=>units.push({t:p,head:false,chap:cur.i}));cur.text+=l+'\n'});
+  if(!chapters.length)newChap('','',true);
+  chapters.forEach(c=>{c.autoScene=pickScene(c.title+' '+c.title+' '+c.title+' '+c.text)});
+  return{units,chapters,mode}}
+
+/* ================= scene choice by topic ================= */
+const SCENE_WORDS={
+  space:'sun sunlight space planet planets moon moons star stars galaxy galaxies universe orbit asteroid asteroids alien aliens mars jupiter saturn venus mercury neptune pluto rocket rockets astronaut astronauts gravity blackhole nasa solar comet comets satellite satellites cosmic spaceship telescope meteor',
+  ocean:'ocean oceans sea seas water wave waves fish shark sharks whale whales underwater island islands beach flood floods rain river rivers lake tsunami submarine coral swim swimming tide tides',
+  fire:'fire fires burn burning heat hot volcano volcanoes lava explosion explode desert flame flames drought wildfire nuclear dragon dragons sunburn boiling melt melting magma',
+  ice:'ice snow cold frozen freeze freezing winter glacier glaciers arctic antarctica polar penguin penguins blizzard iceage frost',
+  city:'city cities money robot robots ai technology internet computer computers phone phones economy government car cars electricity power building buildings billion trillion million job jobs school factory tech wifi bank',
+  nature:'forest forests tree trees animal animals dinosaur dinosaurs plant plants earth grass bird birds insect insects bee bees nature mountain mountains farm farms food oxygen jungle wildlife flower flowers',
+  mystery:'ghost ghosts dark darkness night mystery dream dreams sleep death dead invisible shadow shadows magic parallel simulation clone clones haunted secret secrets portal timeline'};
+const SCENES=['space','ocean','fire','ice','city','nature','mystery','calm'];
+const SCENE_LABEL={space:'🪐 Space',ocean:'🌊 Ocean',fire:'🔥 Fire & heat',ice:'❄️ Ice & snow',city:'🌃 City & tech',nature:'🌳 Nature',mystery:'🌫️ Mystery night',calm:'✨ Calm glow'};
+const SW={};Object.entries(SCENE_WORDS).forEach(([k,v])=>v.split(' ').forEach(w=>{SW[w]=k}));
+function pickScene(text){const sc={};const ws=norm(text);for(let i=0;i<ws.length;i++){let w=ws[i];if(w==='black'&&ws[i+1]==='hole')w='blackhole';if(w==='ice'&&ws[i+1]==='age')w='iceage';const k=SW[w];if(k)sc[k]=(sc[k]||0)+1}
+  let best='calm',bv=0;for(const k in sc)if(sc[k]>bv){bv=sc[k];best=k}return bv>=2?best:'calm'}
+
+/* ================= emoji pop-ups ================= */
+const EMO={moon:'🌙',moons:'🌙',sun:'☀️',earth:'🌍',planet:'🪐',planets:'🪐',saturn:'🪐',mars:'🔴',star:'⭐',stars:'✨',galaxy:'🌌',universe:'🌌',rocket:'🚀',rockets:'🚀',astronaut:'👨‍🚀',alien:'👽',aliens:'👽',asteroid:'☄️',comet:'☄️',meteor:'☄️',satellite:'🛰️',
+  ocean:'🌊',oceans:'🌊',sea:'🌊',wave:'🌊',waves:'🌊',tsunami:'🌊',water:'💧',rain:'🌧️',fish:'🐟',shark:'🦈',sharks:'🦈',whale:'🐋',whales:'🐋',island:'🏝️',
+  fire:'🔥',fires:'🔥',burning:'🔥',volcano:'🌋',lava:'🌋',explosion:'💥',explode:'💥',heat:'🥵',hot:'🥵',desert:'🏜️',nuclear:'☢️',dragon:'🐉',lightning:'⚡',electricity:'⚡',
+  ice:'🧊',snow:'❄️',cold:'🥶',frozen:'🧊',winter:'❄️',penguin:'🐧',penguins:'🐧',glacier:'🏔️',
+  city:'🏙️',cities:'🏙️',money:'💰',dollars:'💵',gold:'🪙',robot:'🤖',robots:'🤖',ai:'🤖',internet:'🌐',computer:'💻',computers:'💻',phone:'📱',phones:'📱',car:'🚗',cars:'🚗',plane:'✈️',planes:'✈️',school:'🏫',
+  tree:'🌳',trees:'🌳',forest:'🌲',forests:'🌲',dinosaur:'🦖',dinosaurs:'🦖',animal:'🐾',animals:'🐾',bird:'🐦',birds:'🐦',bee:'🐝',bees:'🐝',flower:'🌸',flowers:'🌸',plant:'🌱',plants:'🌱',mountain:'⛰️',food:'🍔',oxygen:'🫁',
+  ghost:'👻',ghosts:'👻',dream:'💭',dreams:'💭',sleep:'😴',time:'⏳',clock:'⏰',magic:'🪄',secret:'🤫',brain:'🧠',heart:'❤️',love:'❤️',baby:'👶',virus:'🦠',dna:'🧬',science:'🔬',scientists:'🔬',king:'👑',queen:'👑',crown:'👑',
+  wow:'😮',scary:'😱',terrifying:'😱',danger:'⚠️',dangerous:'⚠️',warning:'⚠️',crazy:'🤯',impossible:'🤯',idea:'💡',light:'💡',music:'🎵',game:'🎮',games:'🎮',book:'📚',books:'📚',war:'⚔️',world:'🌎',human:'🧍',humans:'🧍',people:'👥',
+  coffee:'☕',pizza:'🍕',cat:'🐱',cats:'🐱',dog:'🐶',dogs:'🐶',wind:'🌬️',storm:'⛈️',tornado:'🌪️',rainbow:'🌈',cloud:'☁️',clouds:'☁️',sky:'🌤️',night:'🌙',dark:'🌑',darkness:'🌑'};
+let EVENTS=[];
+function buildEmojiEvents(){EVENTS=[];const last={};let lastAny=-99;const R=rnd(hashStr('emo')^SEED);
+  for(const c of CUES){if(c.head)continue;for(const w of c.words){const k=norm(w.w)[0];const e=k&&EMO[k];if(!e)continue;
+    if(w.t-lastAny<4.5||w.t-(last[e]??-999)<30)continue;last[e]=w.t;lastAny=w.t;
+    EVENTS.push({t:w.t,e,side:R()<.5?-1:1,r1:R(),r2:R(),r3:R()})}}}
+
+/* ================= narration timing ================= */
+let RAW_ENDS=null,SRC=null,CUES=[],PAGES=[],CH_START=[],DURATION=10,SYNC='none',RAW=null; // RAW: {kind:'auto'|'srt', cues:[{a,b,t,chap,head}]}
+let audioURL=null;const aud=new Audio();aud.preload='auto';
+/* intro: either inside the narration audio, or a separate file played before it */
+let MAIN=null,INTRO_SRC=null,introURL=null;const audI=new Audio();audI.preload='auto';
+const introMode=()=>$('introMode').value; // none | inaudio | file
+const introOff=()=>introMode()==='file'&&INTRO_SRC&&MAIN?INTRO_SRC.duration:0; // where the main narration begins in the video
+function introTextUnits(){if(introMode()==='none')return[];const t=$('introText').value.trim();if(!t)return[];const out=[];t.replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean).forEach(l=>splitLong(l).forEach(p=>out.push(p)));return out}
+function introSkip(){ // seconds of intro with no subtitles, before the story starts
+  if(introTextUnits().length)return 0;if(introMode()==='file')return introOff();if(introMode()==='inaudio')return Math.max(0,parseFloat($('introLen').value)||0);return 0}
+function concatSource(A,B){return{kind:'concat',duration:A.duration+B.duration,key:'cat:'+(A.key||'')+'|'+(B.key||''),async getSegment(t0,t1){const parts=[];
+  if(t0<A.duration)parts.push([0,await A.getSegment(t0,Math.min(t1,A.duration))]);if(t1>A.duration)parts.push([Math.max(0,A.duration-t0),await B.getSegment(Math.max(0,t0-A.duration),t1-A.duration)]);
+  if(parts.length===1)return parts[0][1];const sr=48000,n=Math.max(1,Math.round((t1-t0)*sr));const oc=new OfflineAudioContext(2,n,sr);parts.forEach(([at,buf])=>{const s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start(at)});return await oc.startRendering()}}}
+function rebuildSource(){const prev=SRC;SRC=MAIN?(introMode()==='file'&&INTRO_SRC?concatSource(INTRO_SRC,MAIN):MAIN):null;if(prev!==SRC&&RAW&&RAW.kind==='auto'){RAW=null;SYNC='none';if(MAIN)$('syncMsg').innerHTML='<span style="color:var(--warn)">Audio or intro changed: click Auto-sync again.</span>'}
+  if(RAW&&RAW.kind==='srt')RAW.cues=srtCuesNow();finalizeCues();setSyncState()}
+function srtCuesNow(){const off=introOff();const c=RAW.srt.map(x=>({a:x.a+off,b:x.b+off,t:x.t}));const main=srtWithChapters(c);const iu=STORY.units.filter(u=>u.intro);
+  if(!iu.length||introMode()!=='file')return main;const mainNoIntro=main;const a0=.3,a1=Math.max(a0+1,(off||(c[0]?c[0].a:3))-.3);const W=iu.map(u=>u.t.length+8),tot=W.reduce((x,y)=>x+y,0);let t=a0;
+  const ic=iu.map((u,i)=>{const d=(a1-a0)*W[i]/tot;const o={a:t,b:t+d-.15,t:u.t,chap:0,head:false};t+=d;return o});return ic.concat(mainNoIntro)}
+function wpmCues(){const wpm=clamp(parseFloat($('wpm').value)||160,60,400);let t=1;const out=[];const skip=introSkip();let skipped=false;
+  STORY.units.forEach(u=>{if(!u.intro&&!skipped){skipped=true;t=Math.max(t,skip+.5)}const n=(u.t.match(/\S+/g)||[]).length;const d=Math.max(.8,n*60/wpm);out.push({a:t,b:t+d,t:u.t,chap:u.chap,head:u.head});t+=d+(u.head?1.2:.45)});return out}
+function finalizeCues(){
+  const shift=parseFloat($('shift').value)||0;
+  let src=RAW?RAW.cues:wpmCues();
+  CUES=src.map(c=>({a:c.a+shift,b:c.b+shift,t:c.t,chap:c.chap,head:c.head})).sort((x,y)=>x.a-y.a);
+  const nCh=STORY.chapters.length;
+  // words + pages
+  PAGES=[];
+  CUES.forEach((c,ci)=>{const ws=c.t.split(/\s+/).filter(Boolean);const Ltot=ws.reduce((s,w)=>s+w.length+1,0)||1;let acc=0;const span=Math.max(.2,c.b-c.a);
+    c.words=ws.map(w=>{const o={w,t:c.a+span*acc/Ltot};acc+=w.length+1;return o});
+    if(c.head)return;
+    let pg=null;const pages=[];
+    c.words.forEach((w,i)=>{if(!pg||pg.chars+w.w.length>40||pg.words.length>=8||(pg.words.length>=3&&pg.chars>=16&&/[.,!?;:…]["”’)]*$/.test(pg.words[pg.words.length-1].w))){pg={t:w.t,words:[],chars:0,cue:ci,chap:c.chap};pages.push(pg)}pg.words.push(w);pg.chars+=w.w.length+1});
+    pages.forEach((p,i)=>{p.hideNext=i<pages.length-1?pages[i+1].t:null;p.cueEnd=c.b;PAGES.push(p)})});
+  PAGES.sort((x,y)=>x.t-y.t);
+  PAGES.forEach((p,i)=>{const nx=PAGES[i+1];p.hide=p.hideNext!=null?p.hideNext:Math.min(nx?nx.t:1e12,p.cueEnd+.9)});
+  // chapter starts
+  CH_START=new Array(nCh).fill(null);
+  CUES.forEach(c=>{if(c.chap!=null&&c.chap<nCh&&(CH_START[c.chap]==null||c.a<CH_START[c.chap]))CH_START[c.chap]=c.a});
+  CH_START[0]=0;if(STORY.chapters[0]&&STORY.chapters[0].isIntro&&nCh>1){const sk=introSkip();if(sk>0&&(CH_START[1]==null||CH_START[1]>sk))CH_START[1]=Math.max(.5,Math.min(CH_START[1]??sk,sk))}for(let i=1;i<nCh;i++){if(CH_START[i]==null)CH_START[i]=CH_START[i-1];CH_START[i]=Math.max(CH_START[i]-.4,CH_START[i-1]);}
+  PAGES.forEach(p=>{if(p.chap!=null&&p.chap+1<nCh)p.hide=Math.min(p.hide,Math.max(p.t+.3,CH_START[p.chap+1]+.15))});
+  const last=CUES.length?CUES[CUES.length-1].b:0;
+  DURATION=Math.max(1,SRC?SRC.duration:last+2);
+  buildEmojiEvents();renderChapters();updTime();updSizeEst();if(typeof updSpeed==='function')try{updSpeed()}catch(_){}}
+function chapAt(t){let lo=0,hi=CH_START.length-1,a=0;while(lo<=hi){const m=(lo+hi)>>1;if(CH_START[m]<=t){a=m;lo=m+1}else hi=m-1}return a}
+function chapEnd(i){return i+1<CH_START.length?CH_START[i+1]:DURATION}
+function pageAt(t){let lo=0,hi=PAGES.length-1,a=-1;while(lo<=hi){const m=(lo+hi)>>1;if(PAGES[m].t<=t){a=m;lo=m+1}else hi=m-1}if(a<0)return null;const p=PAGES[a];return t<p.hide?p:null}
+
+/* --- SRT --- */
+function parseSRT(txt){const out=[];const blocks=txt.replace(/\r/g,'').replace(/^WEBVTT[^\n]*\n/,'').split(/\n\s*\n/);
+  const ts=s=>{const m=s.trim().match(/(?:(\d+):)?(\d+):(\d+)[,.](\d+)/);if(!m)return null;return(+(m[1]||0))*3600+(+m[2])*60+(+m[3])+(+('0.'+m[4]))};
+  for(const b of blocks){const ls=b.split('\n').filter(l=>l.trim());const i=ls.findIndex(l=>l.includes('-->'));if(i<0)continue;const[x,y]=ls[i].split('-->');const a=ts(x),bb=ts(y);if(a==null||bb==null)continue;
+    const t=ls.slice(i+1).join(' ').replace(/<[^>]+>/g,'').trim();if(t)out.push({a,b:bb,t})}return out.sort((p,q)=>p.a-q.a)}
+function addIntroToStory(){const iu=introTextUnits();const skip=introSkip();if(!iu.length&&!skip)return;
+  const S=STORY;let c0=S.chapters[0];
+  if(!(c0&&c0.intro&&c0.firstUnit===0)){S.chapters.forEach(c=>{c.i++;c.firstUnit=c.firstUnit});S.units.forEach(u=>u.chap++);c0={title:'',label:'',intro:true,text:'',firstUnit:0,i:0,autoScene:'calm'};S.chapters.unshift(c0)}
+  c0.isIntro=true;c0.text=iu.join('\n')+'\n'+c0.text;S.units=iu.map(t=>({t,head:false,chap:0,intro:true})).concat(S.units);let k=0;S.chapters.forEach(c=>{c.firstUnit=S.units.findIndex(u=>u.chap===c.i);if(c.firstUnit<0)c.firstUnit=S.units.length});
+  c0.autoScene=pickScene(c0.text)}
+function srtWithChapters(cues){
+  const chs=STORY.chapters,nw=STORY.units.reduce((s,u)=>s+norm(u.t).length,0)||1;let wsum=0;const unitWordPos=STORY.units.map(u=>{const p=wsum;wsum+=norm(u.t).length;return p});
+  const cueW=[];let cw=0;cues.forEach(c=>{cueW.push(cw);cw+=norm(c.t).length});cw=cw||1;
+  const startIdx=chs.map(()=>null);startIdx[0]=0;let from=0;
+  chs.forEach((ch,i)=>{if(i===0||ch.intro)return;const hw=norm(ch.title).slice(0,4).join(' ');const est=unitWordPos[ch.firstUnit]/nw*cw;
+    let best=null,bd=1e9;for(let k=from;k<cues.length;k++){if(Math.abs(cueW[k]-est)>cw*.15+200)continue;const ct=norm(cues[k].t).join(' ');if(hw&&ct.includes(hw)){const d=Math.abs(cueW[k]-est);if(d<bd){bd=d;best=k}}}
+    if(best==null){best=from;while(best<cues.length-1&&cueW[best]<est)best++}
+    startIdx[i]=Math.max(from,best);from=startIdx[i]});
+  let ci=0;return cues.map((c,k)=>{while(ci+1<chs.length&&startIdx[ci+1]!=null&&k>=startIdx[ci+1])ci++;const ch=chs[ci];
+    const head=!ch.intro&&k===startIdx[ci]&&norm(c.t).join(' ').length<=norm(ch.title+' '+ch.label).join(' ').length+12;return{a:c.a,b:c.b,t:c.t,chap:ci,head}})}
+
+/* --- audio sources (stream long files without loading all of them decoded) --- */
+function bufFromPlanar(chs,sr){const n=Math.max(1,chs[0].length);const b=new AudioBuffer({length:n,numberOfChannels:chs.length,sampleRate:sr});chs.forEach((c,i)=>{if(c.length)b.copyToChannel(c,i)});return b}
+async function makeSource(file){
+  const head=new Uint8Array(await file.slice(0,12).arrayBuffer());const s4=a=>String.fromCharCode(...head.slice(a,a+4));
+  let s;if(s4(0)==='RIFF'&&s4(8)==='WAVE')s=await wavSource(file);
+  else{const isMp3=/\.mp3$/i.test(file.name)||file.type==='audio/mpeg'||(head[0]===0x49&&head[1]===0x44&&head[2]===0x33)||(head[0]===0xFF&&(head[1]&0xE0)===0xE0);
+    if(isMp3){try{s=await mp3Source(file)}catch(e){console.warn(e)}}if(!s)s=await fullSource(file)}
+  s.key=file.name+':'+file.size;return s}
+async function wavSource(file){
+  const hb=new DataView(await file.slice(0,Math.min(file.size,1<<20)).arrayBuffer());let p=12,f=null,dataOff=0,dataLen=0;
+  while(p+8<=hb.byteLength){const id=String.fromCharCode(hb.getUint8(p),hb.getUint8(p+1),hb.getUint8(p+2),hb.getUint8(p+3));const sz=hb.getUint32(p+4,true);
+    if(id==='fmt '){f={code:hb.getUint16(p+8,true),ch:hb.getUint16(p+10,true),sr:hb.getUint32(p+12,true),align:hb.getUint16(p+20,true),bits:hb.getUint16(p+22,true)};if(f.code===0xFFFE&&sz>=40)f.code=hb.getUint16(p+32,true)}
+    if(id==='data'){dataOff=p+8;dataLen=sz;break}p+=8+sz+(sz&1)}
+  if(!f||!dataOff)throw new Error('Unreadable WAV file');
+  if(!dataLen||dataLen>file.size-dataOff)dataLen=file.size-dataOff;
+  const frames=Math.floor(dataLen/f.align);
+  return{kind:'wav',duration:frames/f.sr,async getSegment(t0,t1){
+    const a=clamp(Math.floor(t0*f.sr),0,frames),b=clamp(Math.ceil(t1*f.sr),a,frames),n=b-a;
+    const dv=new DataView(await file.slice(dataOff+a*f.align,dataOff+b*f.align).arrayBuffer());
+    const chs=Array.from({length:f.ch},()=>new Float32Array(Math.max(1,n)));const bps=f.bits/8;
+    for(let i=0;i<n;i++)for(let c=0;c<f.ch;c++){const o=i*f.align+c*bps;let v;
+      if(f.code===3)v=bps===8?dv.getFloat64(o,true):dv.getFloat32(o,true);
+      else if(bps===2)v=dv.getInt16(o,true)/32768;else if(bps===3)v=(dv.getUint8(o)|dv.getUint8(o+1)<<8|dv.getInt8(o+2)<<16)/8388608;
+      else if(bps===4)v=dv.getInt32(o,true)/2147483648;else v=(dv.getUint8(o)-128)/128;chs[c][i]=v}
+    return bufFromPlanar(chs,f.sr)}}}
+async function mp3Source(file){
+  const u=new Uint8Array(await file.arrayBuffer());let i=0;
+  if(u[0]===0x49&&u[1]===0x44&&u[2]===0x33)i=10+((u[6]&127)<<21|(u[7]&127)<<14|(u[8]&127)<<7|(u[9]&127))+((u[5]&16)?10:0);
+  const B1=[0,32,40,48,56,64,80,96,112,128,160,192,224,256,320],B2=[0,8,16,24,32,40,48,56,64,80,96,112,128,144,160],SR={3:[44100,48000,32000],2:[22050,24000,16000],0:[11025,12000,8000]};
+  const hdr=j=>{if(j+4>u.length||u[j]!==0xFF||(u[j+1]&0xE0)!==0xE0)return null;const ver=(u[j+1]>>3)&3,layer=(u[j+1]>>1)&3,bri=u[j+2]>>4,sri=(u[j+2]>>2)&3,pad=(u[j+2]>>1)&1;
+    if(ver===1||layer!==1||bri===0||bri===15||sri===3)return null;const m1=ver===3;const br=(m1?B1:B2)[bri]*1000,sr=SR[ver][sri];const len=Math.floor((m1?144:72)*br/sr)+pad;return len>4?{len,sr,spf:m1?1152:576}:null};
+  const offs=[];let sr=0,spf=0;
+  while(i<u.length-4){const h=hdr(i);if(h&&(i+h.len>=u.length-4||hdr(i+h.len))){if(!sr){sr=h.sr;spf=h.spf}offs.push(i);i+=h.len}else i++}
+  if(offs.length<10)throw new Error('Not an MP3 stream');
+  if(/Xing|Info/.test(String.fromCharCode(...u.slice(offs[0]+4,offs[0]+44))))offs.shift();
+  const O=Uint32Array.from(offs),N=O.length,size=u.length;
+  return{kind:'mp3',duration:N*spf/sr,async getSegment(t0,t1){
+    const a=clamp(Math.floor(t0*sr/spf)-30,0,N-1),b=clamp(Math.ceil(t1*sr/spf)+4,a+1,N);
+    const dec=await new OfflineAudioContext(1,sr,sr).decodeAudioData(await file.slice(O[a],b<N?O[b]:size).arrayBuffer());
+    const endT=(b<N?b:N)*spf/sr,off=clamp(Math.round(dec.length-(endT-t0)*dec.sampleRate),0,dec.length-1),n=Math.max(1,Math.min(dec.length-off,Math.round((t1-t0)*dec.sampleRate)));
+    const chs=[];for(let c=0;c<dec.numberOfChannels;c++)chs.push(dec.getChannelData(c).slice(off,off+n));return bufFromPlanar(chs,dec.sampleRate)}}}
+async function fullSource(file){
+  if(file.size>120*1048576)throw new Error('This audio format is too big to cut up in the browser. Please export the narration as MP3 or WAV.');
+  const dec=await new OfflineAudioContext(1,48000,48000).decodeAudioData(await file.arrayBuffer());
+  return{kind:'other',duration:dec.duration,async getSegment(t0,t1){const o=clamp(Math.round(t0*dec.sampleRate),0,dec.length-1),n=Math.max(1,Math.min(dec.length-o,Math.round((t1-t0)*dec.sampleRate)));
+    const chs=[];for(let c=0;c<dec.numberOfChannels;c++)chs.push(dec.getChannelData(c).slice(o,o+n));return bufFromPlanar(chs,dec.sampleRate)}}}
+
+/* --- auto-sync: story units + pauses in the voice --- */
+let syncBusy=false,cancelSync=false;
+const unitWeight=u=>{const s=u.replace(/[\[\]]/g,'');let w=s.length;(s.match(/\d+/g)||[]).forEach(m=>w+=m.length*3);return Math.max(4,w)};
+async function detectPauses(onProg){
+  const key=SRC.key?'pauses:'+SRC.key:null;if(key){const c=store.get(key,null);if(c&&c.length)return c}
+  const D=SRC.duration,CH=60,thr=Math.pow(10,-35/20),frame=.01,res=[];let sil=null;
+  for(let t=0;t<D;t+=CH){if(cancelSync)throw new Error('cancelled');
+    const seg=await SRC.getSegment(t,Math.min(D,t+CH));const sr=seg.sampleRate,fl=Math.max(1,Math.round(sr*frame));
+    const c0=seg.getChannelData(0),c1=seg.numberOfChannels>1?seg.getChannelData(1):null,nF=Math.floor(seg.length/fl);
+    for(let f=0;f<nF;f++){let s=0;const o=f*fl,e=o+fl;if(c1){for(let k=o;k<e;k++){const v=(c0[k]+c1[k])*.5;s+=v*v}}else{for(let k=o;k<e;k++){const v=c0[k];s+=v*v}}
+      const tt=t+f*frame;if(Math.sqrt(s/fl)<thr){if(sil==null)sil=tt}else if(sil!=null){if(tt-sil>=.25)res.push([+sil.toFixed(3),+tt.toFixed(3)]);sil=null}}
+    onProg(Math.min(1,(t+CH)/D));await new Promise(r=>setTimeout(r,0))}
+  if(sil!=null&&D-sil>=.25)res.push([sil,D]);
+  if(key)store.set(key,res);return res}
+function alignUnits(units,pauses,D){
+  const n=units.length,W=units.map(unitWeight);
+  let A=0,B=D;if(pauses.length&&pauses[0][0]<.05)A=pauses[0][1];if(pauses.length&&pauses[pauses.length-1][1]>=D-.05)B=pauses[pauses.length-1][0];
+  const P=pauses.filter(p=>p[1]>A+.2&&p[1]<B-.2),E=P.map(p=>p[1]),Ln=P.map(p=>p[1]-p[0]);
+  const sl=[...Ln].sort((a,b)=>b-a),thr=clamp(sl[Math.min(sl.length-1,Math.max(0,n-1))]||.45,.25,.9);
+  const longs=Ln.filter(x=>x>=thr).sort((a,b)=>a-b),g=longs.length?longs[Math.floor(longs.length/2)]:.5;
+  const C=W.reduce((a,b)=>a+b,0),r=Math.max(.01,(B-A-n*g)/C);
+  const cum=[0];for(let i=0;i<n;i++)cum.push(cum[i]+W[i]*r+g);const sc=(B-A)/cum[n],pred=cum.map(c=>A+c*sc);
+  const WIN=90,lb=x=>{let lo=0,hi=E.length;while(lo<hi){const m=(lo+hi)>>1;if(E[m]<x)lo=m+1;else hi=m}return lo};
+  let pT=new Float64Array([A]),pC=new Float64Array([0]);const backs=[],candT=[pT];
+  for(let i=1;i<=n;i++){let ct,cp;
+    if(i===n){ct=[B];cp=[0]}else{const lo=lb(pred[i]-WIN),hi=lb(pred[i]+WIN);ct=[];cp=[];for(let k=lo;k<hi;k++){ct.push(E[k]);cp.push(Ln[k]>=thr?0:8)}if(!ct.length){ct=[pred[i]];cp=[9]}}
+    const exp=W[i-1]*r+g,sig=.18*exp+.3,cT=new Float64Array(ct),cC=new Float64Array(ct.length),bk=new Int32Array(ct.length);
+    for(let a=0;a<ct.length;a++){let best=1e300,bj=0;const t=ct[a];for(let j=0;j<pT.length;j++){const d=t-pT[j];if(d<=.2)continue;const z=(d-exp)/sig,c=pC[j]+z*z;if(c<best){best=c;bj=j}}
+      if(best===1e300){best=pC[0]+1e6;bj=0}cC[a]=best+cp[a];bk[a]=bj}
+    backs.push(bk);candT.push(cT);pT=cT;pC=cC}
+  const times=new Array(n+1);let idx=0;times[n]=B;for(let i=n;i>=1;i--){idx=backs[i-1][idx];times[i-1]=candT[i-1][idx]}
+  return times}
+async function autoSync(){
+  if(syncBusy)return;if(!SRC){toast('Load your narration audio first');return}
+  if(!STORY.units.length){toast('Paste the story text first');return}
+  syncBusy=true;cancelSync=false;$('syncBtn').disabled=true;$('cancelSyncBtn').style.display='';const msg=$('syncMsg');
+  try{msg.innerHTML='<b>Listening for pauses in the voice…</b> 0%';
+    const pauses=await detectPauses(p=>{msg.innerHTML=`<b>Listening for pauses in the voice…</b> ${Math.round(p*100)}%`});
+    msg.innerHTML='<b>Matching every line to the audio…</b>';await new Promise(r=>setTimeout(r,30));
+    const units=STORY.units;const D=SRC.duration;
+    const alignRange=(us,a,b)=>{if(!us.length)return[];const P=pauses.filter(p=>p[1]>a&&p[0]<b).map(p=>[Math.max(0,p[0]-a),Math.min(b,p[1])-a]);return alignUnits(us.map(u=>u.t),P,b-a).map(x=>x+a)};
+    const iu=units.filter(u=>u.intro),su=units.filter(u=>!u.intro);let times;
+    if(introMode()==='file'&&introOff()>0){const off=introOff();const ti=alignRange(iu,0,off),ts=alignRange(su,off,D);times=ti.slice(0,iu.length).concat(ts.slice(0,su.length));times.push(D);RAW_ENDS={introEnd:off,iuN:iu.length}}
+    else{const sk=introSkip();const tAll=sk>0?alignRange(su,sk,D):alignRange(units,0,D);times=tAll}
+    if(times.length<units.length+1)times.push(D);
+    RAW={kind:'auto',cues:units.map((u,i)=>{let b=Math.max(times[i]+.2,times[i+1]-.25);if(RAW_ENDS&&i===RAW_ENDS.iuN-1)b=Math.min(b,RAW_ENDS.introEnd-.1);return{a:times[i],b,t:u.t,chap:u.chap,head:u.head}})};RAW_ENDS=null;
+    SYNC='auto';$('srtDrop').classList.remove('done');$('srtLabel').textContent='Not needed: auto-synced from your story';
+    finalizeCues();setSyncState();msg.innerHTML=`<span style="color:var(--ok)">✓ Synced ${units.length.toLocaleString()} lines across ${STORY.chapters.length} chapter${STORY.chapters.length>1?'s':''}.</span> Scrub the preview to check a few spots.`;
+  }catch(e){if(String(e&&e.message)!=='cancelled'){console.error(e);msg.textContent='Auto-sync failed: '+(e&&e.message?e.message:e)}else msg.textContent='Cancelled.'}
+  finally{syncBusy=false;$('syncBtn').disabled=false;$('cancelSyncBtn').style.display='none'}}
+function setSyncState(){const s=$('syncState');s.textContent=SYNC==='auto'?'auto-synced ✓':SYNC==='srt'?'synced from subtitles ✓':SRC?'audio loaded · not synced':'not synced · preview uses reading speed';$('saveSrtBtn').style.display=RAW?'':'none'}
+function cuesToSrt(){const f=s=>{const ms=Math.max(0,Math.round(s*1000));return`${String(Math.floor(ms/3600000)).padStart(2,'0')}:${String(Math.floor(ms/60000)%60).padStart(2,'0')}:${String(Math.floor(ms/1000)%60).padStart(2,'0')},${String(ms%1000).padStart(3,'0')}`};
+  return CUES.map((c,i)=>`${i+1}\n${f(c.a)} --> ${f(c.b)}\n${c.t}\n`).join('\n')}
+
+/* ================= look ================= */
+const HILITE=['#ffd23f','#4de1ff','#7dff8a','#ff5fa2','#ff8a3d','#b18cff'];
+let LOOK=Object.assign({bg:'sketch',skPace:'whole',skPaper:'paper',skDetail:'1',skColor:true,skPen:true,skCam:true,res:'1920x1080',tsize:'1',hl:'#ffd23f',emoji:true,cards:true,corner:true,subs:true,qual:'std',expMode:'whole'},store.get('look',{}));
+let SEED=store.get('seed',(Math.random()*1e9)>>>0);
+let OVERRIDES=store.get('overrides',{});
+let RES=LOOK.res.split('x').map(Number);
+function saveLook(){store.set('look',LOOK)}
+function sceneOf(i){const ch=STORY.chapters[i];if(!ch)return'calm';const k=hashStr(ch.title+'|'+i);return OVERRIDES[k]||ch.autoScene}
+function setOverride(i,v){const ch=STORY.chapters[i];const k=hashStr(ch.title+'|'+i);if(v===ch.autoScene)delete OVERRIDES[k];else OVERRIDES[k]=v;store.set('overrides',OVERRIDES);ENV.clear()}
+
+/* ================= scene rendering (pure functions of time → seek-safe) ================= */
+const hsl=(h,s,l,a=1)=>`hsla(${((h%360)+360)%360},${s}%,${l}%,${a})`;
+const GLOW=new Map();
+function glow(color){let c=GLOW.get(color);if(c)return c;c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');const g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,color);g.addColorStop(.35,color.replace(/[\d.]+\)$/,m=>(parseFloat(m)*.45)+')'));g.addColorStop(1,color.replace(/[\d.]+\)$/,'0)'));x.fillStyle=g;x.fillRect(0,0,128,128);GLOW.set(color,c);return c}
+function mk(W,H){const c=document.createElement('canvas');c.width=W;c.height=H;return c}
+function vgrad(x,H,stops){const g=x.createLinearGradient(0,0,0,H);stops.forEach(([p,c])=>g.addColorStop(p,c));return g}
+const ENV=new Map();
+function getEnv(ci,W,H){const sc=sceneOf(ci);const key=`${ci}|${sc}|${W}x${H}|${SEED}`;let e=ENV.get(key);if(e)return e;
+  if(ENV.size>6)ENV.delete(ENV.keys().next().value);
+  const R=rnd(hashStr(key));const base={space:235,ocean:200,fire:15,ice:205,city:250,nature:20,mystery:270,calm:190+hashStr(String(SEED+ci))%140}[sc];
+  const h=base+(R()-.5)*(sc==='fire'?24:sc==='calm'?0:50);
+  const P=new Float32Array(400*8);for(let i=0;i<P.length;i++)P[i]=R();
+  e={sc,h,P,R,W,H,s:Math.min(W,H)/1080};SCENE_INIT[sc](e);ENV.set(key,e);return e}
+function drawScene(ctx,e,t){SCENE_DRAW[e.sc](ctx,e,t)}
+const SCENE_INIT={},SCENE_DRAW={};
+// helpers
+const pr=(e,i,j)=>e.P[(i*8+j)%e.P.length];
+const wrapv=(v,m)=>((v%m)+m)%m;
+function lowLayer(e,key,div,t,fn){let L=e[key];if(!L){L=e[key]={c:mk(Math.ceil(e.W/div),Math.ceil(e.H/div)),q:null}}const q=Math.round(t*10);if(q!==L.q){L.q=q;const x=L.c.getContext('2d');x.setTransform(1,0,0,1,0,0);x.globalCompositeOperation='source-over';x.globalAlpha=1;x.clearRect(0,0,L.c.width,L.c.height);x.setTransform(1/div,0,0,1/div,0,0);fn(x,q/10)}return L.c}
+
+/* space */
+SCENE_INIT.space=e=>{const{W,H,h,s}=e;const bg=mk(W,H),x=bg.getContext('2d');x.fillStyle=vgrad(x,H,[[0,hsl(h,55,5)],[1,hsl(h+35,50,13)]]);x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';for(let i=0;i<4;i++){const g=glow(hsl(h+[0,60,-40,120][i],70,45,.22));const r=Math.max(W,H)*(.35+e.R()*.3);x.drawImage(g,e.R()*W-r,e.R()*H-r,r*2,r*2)}
+  x.globalCompositeOperation='source-over';for(let i=0;i<500;i++){x.fillStyle=`rgba(255,255,255,${.1+e.R()*.3})`;x.fillRect(e.R()*W,e.R()*H,s*1.1,s*1.1)}e.bg=bg;
+  const R0=Math.min(W,H)*.2,pc=mk(Math.ceil(R0*3.2),Math.ceil(R0*3.2)),p=pc.getContext('2d'),cx=pc.width/2,cy=pc.height/2,ph=h+150+e.R()*60;
+  p.save();p.beginPath();p.arc(cx,cy,R0,0,TAU);p.clip();const g=p.createRadialGradient(cx-R0*.4,cy-R0*.4,R0*.1,cx,cy,R0*1.05);g.addColorStop(0,hsl(ph,60,62));g.addColorStop(.6,hsl(ph+10,55,35));g.addColorStop(1,hsl(ph+20,60,10));p.fillStyle=g;p.fillRect(0,0,pc.width,pc.height);
+  for(let k=0;k<6;k++){p.fillStyle=hsl(ph+(e.R()-.5)*40,50,50,.13);p.beginPath();p.ellipse(cx,cy-R0+e.R()*R0*2,R0*1.3,R0*(.05+e.R()*.08),.2,0,TAU);p.fill()}p.restore();
+  p.strokeStyle=hsl(ph+30,40,80,.45);p.lineWidth=R0*.06;p.beginPath();p.ellipse(cx,cy,R0*1.55,R0*.33,-.35,0,TAU);p.stroke();p.strokeStyle=hsl(ph+30,40,80,.2);p.lineWidth=R0*.03;p.beginPath();p.ellipse(cx,cy,R0*1.38,R0*.28,-.35,0,TAU);p.stroke();
+  e.planet=pc;e.pg=glow(hsl(ph,70,60,.35))};
+SCENE_DRAW.space=(ctx,e,t)=>{const{W,H,s}=e;ctx.drawImage(e.bg,0,0);
+  const land=W>=H;const px=W*(land?.77:.7)+Math.sin(t*.05)*W*.012,py=H*(land?.32:.22)+Math.sin(t*.07)*H*.012,pw=e.planet.width;
+  ctx.drawImage(e.pg,px-pw*.75,py-pw*.75,pw*1.5,pw*1.5);ctx.drawImage(e.planet,px-pw/2,py-pw/2);
+  ctx.fillStyle='#fff';for(let i=0;i<240;i++){const L=i%3,sp=[3,8,16][L]*s,sz=[1.2,1.8,2.8][L]*s;const x=wrapv(pr(e,i,0)*W-sp*t,W),y=pr(e,i,1)*H;
+    ctx.globalAlpha=.3+.7*(.5+.5*Math.sin(t*(.4+pr(e,i,2)*2)+pr(e,i,3)*TAU));ctx.fillRect(x,y,sz,sz)}ctx.globalAlpha=1;
+  const per=11,k=Math.floor(t/per),lt=t-k*per;if(lt<1.2){const R=rnd(k*7919+3);const x0=(.2+R()*.8)*W,y0=R()*H*.4,len=W*.2,a=Math.sin(lt/1.2*Math.PI),dx=-len*lt/1.2,dy=len*.45*lt/1.2;
+    const g=ctx.createLinearGradient(x0+dx,y0+dy,x0+dx+len*.5,y0+dy-len*.22);g.addColorStop(0,`rgba(255,255,255,${a})`);g.addColorStop(1,'rgba(255,255,255,0)');ctx.strokeStyle=g;ctx.lineWidth=2.4*s;ctx.beginPath();ctx.moveTo(x0+dx,y0+dy);ctx.lineTo(x0+dx+len*.5,y0+dy-len*.22);ctx.stroke()}};
+
+/* ocean */
+SCENE_INIT.ocean=e=>{const{W,H,h}=e;const bg=mk(W,H),x=bg.getContext('2d');x.fillStyle=vgrad(x,H,[[0,hsl(h+20,50,8)],[.5,hsl(h,45,26)],[1,hsl(h,50,10)]]);x.fillRect(0,0,W,H);
+  const mx=W*.28,my=H*.2,r=Math.min(W,H)*.06;x.globalCompositeOperation='lighter';x.drawImage(glow(hsl(h+20,60,70,.4)),mx-r*5,my-r*5,r*10,r*10);x.globalCompositeOperation='source-over';x.fillStyle=hsl(h+30,40,92);x.beginPath();x.arc(mx,my,r,0,TAU);x.fill();
+  for(let i=0;i<220;i++){x.fillStyle=`rgba(255,255,255,${.1+e.R()*.35})`;x.fillRect(e.R()*W,e.R()*H*.42,1.4*e.s,1.4*e.s)}e.bg=bg;e.mx=mx;e.bub=glow('rgba(200,240,255,.5)')};
+SCENE_DRAW.ocean=(ctx,e,t)=>{const{W,H,h,s}=e;ctx.drawImage(e.bg,0,0);
+  ctx.globalCompositeOperation='lighter';for(let k=0;k<14;k++){const y=H*(.5+k*.02),w=W*(.02+k*.004)*(1+.3*Math.sin(t*1.3+k));ctx.fillStyle=hsl(h+30,60,80,.12);ctx.fillRect(e.mx-w/2+Math.sin(t*.8+k*1.7)*W*.01,y,w,2*s)}ctx.globalCompositeOperation='source-over';
+  const step=W/56;for(let k=0;k<5;k++){const base=H*(.53+k*.1),amp=(9+k*7)*s,f1=1.5+k*.4,f2=3.1+k*.3,v1=.22+k*.07,v2=.15+k*.05;
+    ctx.fillStyle=hsl(h+k*3,55,34-k*5);ctx.beginPath();ctx.moveTo(0,H);for(let x=0;x<=W+step;x+=step){const y=base+amp*Math.sin(x/W*TAU*f1+t*v1+k)+amp*.5*Math.sin(x/W*TAU*f2-t*v2+k*2);ctx.lineTo(x,y)}ctx.lineTo(W,H);ctx.closePath();ctx.fill();
+    ctx.strokeStyle=hsl(h+10,70,75,.22);ctx.lineWidth=2*s;ctx.stroke()}
+  for(let i=0;i<50;i++){const P=9+pr(e,i,2)*8,ph=wrapv(t/P+pr(e,i,3),1),x=pr(e,i,0)*W+Math.sin(t*.7+pr(e,i,1)*TAU)*14*s,y=H-ph*H*.45,r=(4+pr(e,i,4)*9)*s;ctx.globalAlpha=Math.sin(ph*Math.PI)*.8;ctx.drawImage(e.bub,x-r,y-r,r*2,r*2)}ctx.globalAlpha=1};
+
+/* fire */
+SCENE_INIT.fire=e=>{const{W,H,h}=e;const bg=mk(W,H),x=bg.getContext('2d');x.fillStyle=vgrad(x,H,[[0,hsl(h-5,55,4)],[.65,hsl(h,70,9)],[1,hsl(h+8,85,20)]]);x.fillRect(0,0,W,H);
+  x.fillStyle=hsl(h,50,3);x.beginPath();x.moveTo(0,H);let px=0;const R=e.R;while(px<=W){x.lineTo(px,H*(.86+R()*.06));px+=W/18}x.lineTo(W,H);x.fill();e.bg=bg;e.em=glow(hsl(h+20,100,60,.9));e.em2=glow(hsl(h+38,100,65,.9));e.bot=glow(hsl(h+10,100,50,.5))};
+SCENE_DRAW.fire=(ctx,e,t)=>{const{W,H,s}=e;ctx.drawImage(e.bg,0,0);ctx.globalCompositeOperation='lighter';
+  const fl=.55+.12*Math.sin(t*2.7)+.07*Math.sin(t*7.3+1);ctx.globalAlpha=fl;ctx.drawImage(e.bot,-W*.15,H*.62,W*1.3,H*.7);ctx.globalAlpha=1;
+  for(let i=0;i<150;i++){const P=6+pr(e,i,0)*8,ph=wrapv(t/P+pr(e,i,1),1),y=H*(1.04-ph*1.12),x=pr(e,i,2)*W+Math.sin(t*(.5+pr(e,i,3))+pr(e,i,4)*TAU)*34*s+ph*(pr(e,i,5)-.5)*160*s,sz=(5+pr(e,i,6)*15)*s*(1-ph*.6);
+    ctx.globalAlpha=Math.sin(ph*Math.PI)*(.5+.5*Math.sin(t*6+i));ctx.drawImage(i%3?e.em:e.em2,x-sz,y-sz,sz*2,sz*2)}ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'};
+
+/* ice */
+SCENE_INIT.ice=e=>{const{W,H,h}=e;const bg=mk(W,H),x=bg.getContext('2d');x.fillStyle=vgrad(x,H,[[0,hsl(h+20,55,6)],[1,hsl(h,45,24)]]);x.fillRect(0,0,W,H);
+  for(let i=0;i<300;i++){x.fillStyle=`rgba(255,255,255,${.1+e.R()*.4})`;x.fillRect(e.R()*W,e.R()*H*.6,1.3*e.s,1.3*e.s)}
+  [[.72,hsl(h,30,22)],[.8,hsl(h+5,35,12)]].forEach(([b,c],L)=>{x.fillStyle=c;x.beginPath();x.moveTo(0,H);let px=0,up=true;while(px<=W+60){const y=H*(b-(up?.08+e.R()*.12:e.R()*.04));x.lineTo(px,y);px+=W*(.05+e.R()*.07);up=!up}x.lineTo(W,H);x.fill()});
+  e.bg=bg;e.flake=glow('rgba(255,255,255,.95)')};
+SCENE_DRAW.ice=(ctx,e,t)=>{const{W,H,h,s}=e;ctx.drawImage(e.bg,0,0);ctx.globalCompositeOperation='lighter';const step=W/40;
+  for(let j=0;j<3;j++){const by=H*(.14+j*.08),th=H*(.16-j*.03),hue=[150,175,280][j]+(h-205)*.5;const g=ctx.createLinearGradient(0,by-th*.2,0,by+th);g.addColorStop(0,hsl(hue,90,60,0));g.addColorStop(.25,hsl(hue,90,62,.28-j*.05));g.addColorStop(1,hsl(hue,90,55,0));ctx.fillStyle=g;
+    ctx.beginPath();for(let x=0;x<=W+step;x+=step){const y=by+Math.sin(x/W*TAU*1.2+t*.1*(j+1)+j)*H*.05+Math.sin(x/W*TAU*2.7-t*.07+j*2)*H*.02;x?ctx.lineTo(x,y):ctx.moveTo(x,y)}
+    for(let x=W+step;x>=0;x-=step){const y=by+th*(.7+.3*Math.sin(x/W*TAU*1.7+t*.13+j))+Math.sin(x/W*TAU*1.2+t*.1*(j+1)+j)*H*.05;ctx.lineTo(x,y)}ctx.closePath();ctx.fill()}
+  ctx.globalCompositeOperation='source-over';
+  for(let i=0;i<170;i++){const P=10+pr(e,i,0)*12,ph=wrapv(t/P+pr(e,i,1),1),y=ph*H*1.1-H*.05,x=wrapv(pr(e,i,2)*W+Math.sin(t*(.3+pr(e,i,3)*.5)+pr(e,i,4)*TAU)*26*s+t*6*s,W),r=(2+pr(e,i,5)*4.5)*s;ctx.globalAlpha=.45+pr(e,i,6)*.55;ctx.drawImage(e.flake,x-r,y-r,r*2,r*2)}ctx.globalAlpha=1};
+
+/* city */
+SCENE_INIT.city=e=>{const{W,H,h,s}=e;const bg=mk(W,H),x=bg.getContext('2d');x.fillStyle=vgrad(x,H,[[0,hsl(h,50,5)],[.7,hsl(h+25,55,17)],[1,hsl(h+40,50,10)]]);x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';x.drawImage(glow(hsl(h+40,80,55,.35)),-W*.2,H*.45,W*1.4,H*.7);x.globalCompositeOperation='source-over';
+  e.wins=[];e.tops=[];
+  [[.5,hsl(h,30,16),.35],[.62,hsl(h,35,8),.6]].forEach(([b,c,lit],L)=>{let px=-10;while(px<W){const bw=(40+e.R()*90)*s*(L?1.2:.8),bh=H*(.12+e.R()*(L?.3:.38));const top=H*(L?.98:.9)-bh-(L?0:H*.04);x.fillStyle=c;x.fillRect(px,top,bw,H-top);
+      const ws=7*s,gp=12*s;for(let wy=top+gp;wy<H-gp;wy+=gp+ws*.6)for(let wx=px+gp*.6;wx<px+bw-ws-gp*.4;wx+=gp){if(e.R()<lit*.45){x.fillStyle=`hsla(${40+e.R()*20},90%,${65+e.R()*15}%,${L?.75:.35})`;x.fillRect(wx,wy,ws,ws*.7)}else if(L&&e.R()<.04)e.wins.push([wx,wy,ws,ws*.7])}
+      if(L&&bh>H*.3)e.tops.push([px+bw/2,top]);px+=bw+(L?2:6)*s}});
+  e.bg=bg;e.red=glow('rgba(255,60,60,.9)');e.dot=glow(hsl(h+60,90,70,.8))};
+SCENE_DRAW.city=(ctx,e,t)=>{const{W,H,h,s}=e;ctx.globalCompositeOperation='source-over';
+  ctx.save();ctx.drawImage(e.bg,0,0);ctx.globalCompositeOperation='lighter';
+  for(let j=0;j<2;j++){const bx=W*(j?.78:.2),by=H,ang=-Math.PI/2+Math.sin(t*.15+j*2)*.5,len=H*1.1,wd=.06;const g=ctx.createLinearGradient(bx,by,bx+Math.cos(ang)*len,by+Math.sin(ang)*len);g.addColorStop(0,hsl(h+60,60,80,.16));g.addColorStop(1,hsl(h+60,60,80,0));ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+Math.cos(ang-wd)*len,by+Math.sin(ang-wd)*len);ctx.lineTo(bx+Math.cos(ang+wd)*len,by+Math.sin(ang+wd)*len);ctx.closePath();ctx.fill()}
+  for(let i=0;i<60;i++){const P=12+pr(e,i,0)*10,ph=wrapv(t/P+pr(e,i,1),1),x=pr(e,i,2)*W+Math.sin(t*.4+i)*10*s,y=H*(.95-ph*.9),r=(2+pr(e,i,3)*4)*s;ctx.globalAlpha=Math.sin(ph*Math.PI)*.7;ctx.drawImage(e.dot,x-r,y-r,r*2,r*2)}ctx.globalAlpha=1;
+  ctx.globalCompositeOperation='source-over';ctx.fillStyle='hsla(48,95%,72%,.9)';e.wins.forEach((w,i)=>{if(Math.sin(t*(.15+(i%7)*.05)+i*1.3)>.2)ctx.fillRect(w[0],w[1],w[2],w[3])});
+  ctx.globalCompositeOperation='lighter';const blink=(t%1.6)<.25;if(blink)e.tops.forEach(p=>{const r=10*s;ctx.drawImage(e.red,p[0]-r,p[1]-r-3*s,r*2,r*2)});ctx.restore()};
+
+/* nature */
+SCENE_INIT.nature=e=>{const{W,H,h,s}=e;const bg=mk(W,H),x=bg.getContext('2d');const sky=5+e.R()*30;x.fillStyle=vgrad(x,H,[[0,hsl(sky+230,45,20)],[.55,hsl(sky+5,62,50)],[1,hsl(sky+25,70,62)]]);x.fillRect(0,0,W,H);
+  const sx=W*(.3+e.R()*.4),sy=H*.5;x.globalCompositeOperation='lighter';x.drawImage(glow(hsl(sky+30,100,70,.55)),sx-H*.4,sy-H*.4,H*.8,H*.8);x.globalCompositeOperation='source-over';x.fillStyle=hsl(sky+40,100,88);x.beginPath();x.arc(sx,sy,H*.06,0,TAU);x.fill();e.bg=bg;
+  const gh=130+(e.R()-.5)*40;e.hy=Math.floor(H*.42);e.hills=[0,1,2].map(k=>{const c=mk(W,H-e.hy),y=c.getContext('2d');y.translate(0,-e.hy);const base=H*(.6+k*.12),ph=[e.R()*TAU,e.R()*TAU,e.R()*TAU];y.fillStyle=k===0?hsl(sky+200,25,40):hsl(gh,35-k*5,26-k*8);y.beginPath();y.moveTo(0,H);
+    for(let px=0;px<=W;px+=W/120){const yy=base-H*(.05*Math.sin(px/W*TAU*1+ph[0])+.03*Math.sin(px/W*TAU*3+ph[1])+.012*Math.sin(px/W*TAU*7+ph[2]));y.lineTo(px,yy)}y.lineTo(W,H);y.closePath();y.fill();
+    if(k===2){for(let i=0;i<26;i++){const tx=e.R()*W,ty=base-H*.02,th=(40+e.R()*70)*s;y.fillStyle=hsl(gh,40,10);y.beginPath();y.moveTo(tx,ty-th);y.lineTo(tx-th*.28,ty+4*s);y.lineTo(tx+th*.28,ty+4*s);y.fill()}}return c});
+  e.bg.getContext('2d').drawImage(e.hills[0],0,e.hy);
+  e.cloud=(()=>{const c=mk(Math.round(420*s),Math.round(180*s)),y=c.getContext('2d');const g=glow('rgba(255,255,255,.55)');for(let i=0;i<9;i++){const r=(50+e.R()*45)*s;y.drawImage(g,c.width*(.15+e.R()*.7)-r,c.height*(.35+e.R()*.35)-r,r*2,r*2)}return c})();
+  e.fly=glow('hsla(55,100%,75%,.9)')};
+SCENE_DRAW.nature=(ctx,e,t)=>{const{W,H,s}=e;ctx.drawImage(e.bg,0,0);
+  ctx.drawImage(lowLayer(e,'lc',3,t,(lx,tq)=>{for(let i=0;i<6;i++){const cw=e.cloud.width,x=wrapv(pr(e,i,0)*(W+cw)+tq*(5+pr(e,i,1)*8)*s,W+cw)-cw,y=H*(.06+pr(e,i,2)*.32);lx.globalAlpha=.6+pr(e,i,3)*.4;lx.drawImage(e.cloud,x,y,cw*(.8+pr(e,i,4)*.6),e.cloud.height*(.8+pr(e,i,4)*.6))}}),0,0,W,H);
+  e.hills.forEach((c,k)=>{if(k===0)return;const off=wrapv(t*[2,4,9][k]*s,W);if(off<1){ctx.drawImage(c,0,e.hy)}else{ctx.drawImage(c,off,0,W-off,c.height,0,e.hy,W-off,c.height);ctx.drawImage(c,0,0,off,c.height,W-off,e.hy,off,c.height)}});
+  ctx.globalCompositeOperation='lighter';for(let i=0;i<45;i++){const x=wrapv(pr(e,i,0)*W+Math.sin(t*(.2+pr(e,i,1)*.3)+pr(e,i,2)*TAU)*60*s+t*4*s,W),y=H*(.55+pr(e,i,3)*.42)+Math.cos(t*(.3+pr(e,i,4)*.3)+i)*30*s,r=(5+pr(e,i,5)*7)*s;ctx.globalAlpha=Math.max(0,Math.sin(t*(.8+pr(e,i,6))+i*2))*.8;ctx.drawImage(e.fly,x-r,y-r,r*2,r*2)}ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'};
+
+/* mystery */
+SCENE_INIT.mystery=e=>{const{W,H,h,s}=e;const bg=mk(W,H),x=bg.getContext('2d');x.fillStyle=vgrad(x,H,[[0,hsl(h,40,4)],[1,hsl(h+50,35,12)]]);x.fillRect(0,0,W,H);
+  const mx=W*(.65+e.R()*.2),my=H*.25,r=Math.min(W,H)*.08;x.globalCompositeOperation='lighter';x.drawImage(glow(hsl(h+60,40,70,.35)),mx-r*6,my-r*6,r*12,r*12);x.globalCompositeOperation='source-over';x.fillStyle=hsl(h+60,25,85);x.beginPath();x.arc(mx,my,r,0,TAU);x.fill();x.fillStyle=hsl(h,40,4,.9);x.beginPath();x.arc(mx+r*.45,my-r*.15,r*.92,0,TAU);x.fill();
+  x.fillStyle=hsl(h,30,3);for(let i=0;i<14;i++){const tx=e.R()*W,tw=(8+e.R()*14)*s,th=H*(.25+e.R()*.35);x.fillRect(tx,H-th,tw,th);for(let b=0;b<4;b++){x.save();x.translate(tx+tw/2,H-th*(.4+e.R()*.55));x.rotate((e.R()-.5)*2.2);x.fillRect(0,-2*s,th*.25*e.R()+20*s,4*s);x.restore()}}
+  x.fillRect(0,H*.94,W,H*.06);e.bg=bg;e.fog=glow('rgba(200,210,255,.10)');e.fly=glow(hsl(h+120,90,70,.9))};
+SCENE_DRAW.mystery=(ctx,e,t)=>{const{W,H,s}=e;ctx.drawImage(e.bg,0,0);
+  ctx.drawImage(lowLayer(e,'lf',4,t,(lx,tq)=>{for(let i=0;i<8;i++){const fw=W*(.6+pr(e,i,0)*.6),x=wrapv(pr(e,i,1)*(W+fw)+tq*(6+pr(e,i,2)*10)*s,W+fw)-fw,y=H*(.55+pr(e,i,3)*.4)-fw*.25;lx.drawImage(e.fog,x,y,fw,fw*.5)}}),0,0,W,H);
+  ctx.globalCompositeOperation='lighter';for(let i=0;i<40;i++){const x=pr(e,i,0)*W+Math.sin(t*(.15+pr(e,i,1)*.25)+pr(e,i,2)*TAU)*90*s,y=H*(.45+pr(e,i,3)*.5)+Math.cos(t*(.2+pr(e,i,4)*.2)+i)*40*s,r=(5+pr(e,i,5)*6)*s;ctx.globalAlpha=Math.max(0,Math.sin(t*(.6+pr(e,i,6)*.8)+i*1.7))*.9;ctx.drawImage(e.fly,x-r,y-r,r*2,r*2)}ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'};
+
+/* calm */
+SCENE_INIT.calm=e=>{const{W,H,h}=e;const bg=mk(W,H),x=bg.getContext('2d');x.fillStyle=vgrad(x,H,[[0,hsl(h,45,7)],[1,hsl(h+40,45,13)]]);x.fillRect(0,0,W,H);e.bg=bg;e.blobs=[0,45,90,-45].map(d=>glow(hsl(h+d,75,55,.5)));e.low=mk(Math.ceil(W/8),Math.ceil(H/8));e.dust=glow('rgba(255,255,255,.8)')};
+SCENE_DRAW.calm=(ctx,e,t)=>{const{W,H,s}=e;ctx.drawImage(e.bg,0,0);ctx.globalCompositeOperation='lighter';const M=Math.max(W,H);
+  ctx.drawImage(lowLayer(e,'lb',8,t,(lx,tq)=>{lx.globalCompositeOperation='lighter';lx.globalAlpha=.55;e.blobs.forEach((g,i)=>{const r=M*(.35+.08*Math.sin(tq*.05+i)),x=W*(.5+.38*Math.sin(tq*(.021+i*.006)+i*1.7)),y=H*(.5+.35*Math.cos(tq*(.017+i*.005)+i*2.3));lx.drawImage(g,x-r,y-r,r*2,r*2)})}),0,0,W,H);ctx.globalAlpha=1;
+  for(let i=0;i<70;i++){const P=16+pr(e,i,0)*14,ph=wrapv(t/P+pr(e,i,1),1),x=pr(e,i,2)*W+Math.sin(t*.3+i)*20*s,y=H*(1.02-ph*1.05),r=(2+pr(e,i,3)*3.5)*s;ctx.globalAlpha=Math.sin(ph*Math.PI)*.6;ctx.drawImage(e.dust,x-r,y-r,r*2,r*2)}ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over'};
+
+/* ================= overlays ================= */
+let VIG=null;
+function vignette(W,H){if(VIG&&VIG.width===W&&VIG.height===H)return VIG;VIG=mk(W,H);const x=VIG.getContext('2d');const g=x.createRadialGradient(W/2,H*.45,Math.min(W,H)*.3,W/2,H/2,Math.hypot(W,H)*.6);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.55)');x.fillStyle=g;x.fillRect(0,0,W,H);
+  const b=x.createLinearGradient(0,H*.55,0,H);b.addColorStop(0,'rgba(0,0,0,0)');b.addColorStop(1,'rgba(0,0,0,.45)');x.fillStyle=b;x.fillRect(0,H*.55,W,H*.45);return VIG}
+function geom(W,H){const land=W>=H;const u=(land?H:W)/1080;const k=parseFloat(LOOK.tsize)||1;const sk=LOOK.bg==='sketch';return{W,H,land,u,fs:(land?(sk?58:64):(sk?70:76))*u*k,capY:H*(land?(sk?.875:.75):(sk?.8:.66)),maxW:W*(land?.84:.86)}}
+function wrapWords(ctx,words,maxW){const sp=ctx.measureText(' ').width;const lines=[];let cur=[],w=0;words.forEach(o=>{const ww=ctx.measureText(o.w).width;if(cur.length&&w+sp+ww>maxW){lines.push({ws:cur,w});cur=[];w=0}cur.push({o,ww});w+=(cur.length>1?sp:0)+ww});if(cur.length)lines.push({ws:cur,w});return{lines,sp}}
+function drawCaption(ctx,g,t){const p=pageAt(t);if(!p)return;const{fs,capY,maxW}=g;
+  ctx.save();ctx.font=`800 ${fs}px ${FONT}`;ctx.textBaseline='middle';ctx.lineJoin='round';
+  if(!p._lay||p._lay.f!==ctx.font||p._lay.m!==maxW){p._lay={f:ctx.font,m:maxW,...wrapWords(ctx,p.words,maxW)}}
+  const{lines,sp}=p._lay;const lh=fs*1.22,top=capY-lh*(lines.length-1)/2;
+  const ain=ease((t-p.t)/.14),aout=p.hide-t<.18&&p.hideNext==null?clamp((p.hide-t)/.18):1;ctx.globalAlpha=ain*aout;
+  const sc=.9+.1*backEase((t-p.t)/.22);ctx.translate(g.W/2,capY);ctx.scale(sc,sc);ctx.translate(-g.W/2,-capY);
+  lines.forEach((ln,li)=>{let x=g.W/2-ln.w/2;const y=top+li*lh;ln.ws.forEach(({o,ww})=>{const nextT=o.next??null;const spoken=t>=o.t;
+      const cur=spoken&&(()=>{const idx=p.words.indexOf(o);const nx=p.words[idx+1];return!nx||t<nx.t})();
+      ctx.save();if(cur){const cx=x+ww/2,k=1+.08*(1-ease((t-o.t)/.18));ctx.translate(cx,y);ctx.scale(k*1.04,k*1.04);ctx.translate(-cx,-y)}
+      ctx.lineWidth=fs*.17;ctx.strokeStyle='rgba(0,0,0,.88)';ctx.strokeText(o.w,x,y);ctx.fillStyle=cur?LOOK.hl:spoken?'#ffffff':'rgba(255,255,255,.62)';ctx.fillText(o.w,x,y);ctx.restore();x+=ww+sp})});
+  ctx.restore()}
+function drawTitleCard(ctx,g,t,ci){const ch=STORY.chapters[ci];if(!ch)return;let title=ch.title,label=ch.label;if(ch.intro){if(ci!==0||!$('vTitle').value.trim())return;title=$('vTitle').value.trim();label=''}
+  const dt=t-CH_START[ci];if(dt<0||dt>5.2)return;const a=ss(0,.7,dt)*(1-ss(4.4,5.2,dt));if(a<=0)return;const{W,H,u,land}=g;
+  ctx.save();ctx.globalAlpha=a;const cy=H*(land?.4:.36);const sh=glow(LOOK.bg==='sketch'&&LOOK.skPaper==='paper'?'rgba(0,0,0,.28)':'rgba(0,0,0,.75)');ctx.drawImage(sh,W*.05,cy-H*.32,W*.9,H*.64);
+  const fs=(land?92:96)*u;ctx.font=`900 ${fs}px ${FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';
+  const words=title.split(/\s+/).map(w=>({w}));const{lines}=wrapWords(ctx,words,W*(land?.72:.84));const L=lines.slice(0,4);const lh=fs*1.12;const y0=cy-lh*(L.length-1)/2+fs*.15;const rise=(1-ease(dt/.9))*30*u;
+  if(label){ctx.font=`800 ${fs*.36}px ${FONT}`;ctx.fillStyle=LOOK.hl;const lab=label.toUpperCase().split('').join(String.fromCharCode(8202));ctx.fillText(lab,W/2,y0-lh*.5-fs*.55+rise)}
+  ctx.font=`900 ${fs}px ${FONT}`;L.forEach((ln,i)=>{const s=ln.ws.map(x=>x.o.w).join(' ');ctx.lineWidth=fs*.14;ctx.strokeStyle='rgba(0,0,0,.8)';ctx.strokeText(s,W/2,y0+i*lh+rise);ctx.fillStyle='#fff';ctx.fillText(s,W/2,y0+i*lh+rise)});
+  const bw=W*.16*ease((dt-.3)/.8);ctx.fillStyle=LOOK.hl;ctx.fillRect(W/2-bw/2,y0+(L.length-1)*lh+fs*.75+rise,bw,6*u);ctx.restore()}
+function drawCorner(ctx,g,t,ci){const ch=STORY.chapters[ci];const{W,H,u}=g;const s0=CH_START[ci],e0=chapEnd(ci);const prog=clamp((t-s0)/Math.max(1,e0-s0));
+  ctx.save();ctx.fillStyle='rgba(255,255,255,.14)';ctx.fillRect(0,H-6*u,W,6*u);ctx.fillStyle=LOOK.hl;ctx.fillRect(0,H-6*u,W*prog,6*u);
+  const vt=$('vTitle').value.trim();const title=ch&&!ch.intro?ch.title:vt;const card=LOOK.cards&&(ch&&!ch.intro||ci===0&&vt);const wait=card?5.2:0;const dt=t-s0;
+  if(title&&dt>wait){ctx.globalAlpha=.8*ss(wait,wait+1,dt);ctx.font=`700 ${26*u}px ${FONT}`;ctx.textBaseline='top';const dk=LOOK.bg==='sketch'&&LOOK.skPaper==='paper';ctx.fillStyle=dk?'rgba(40,34,28,.85)':'#fff';ctx.shadowColor=dk?'rgba(255,255,255,.6)':'rgba(0,0,0,.6)';ctx.shadowBlur=8*u;
+    const full=(ch&&ch.label&&!ch.intro&&ch.label!==ch.title?ch.label+' · ':'')+title;let s=full;while(s.length>4&&ctx.measureText(s+'…').width>W*.6)s=s.slice(0,-1);if(s!==full)s+='…';ctx.fillText(s,34*u,30*u)}ctx.restore()}
+function drawEmojis(ctx,g,t){if(!EVENTS.length)return;const{W,H,u,land}=g;let lo=0,hi=EVENTS.length;while(lo<hi){const m=(lo+hi)>>1;if(EVENTS[m].t<t-3.6)lo=m+1;else hi=m}
+  for(let i=lo;i<EVENTS.length&&EVENTS[i].t<=t;i++){const ev=EVENTS[i],dt=t-ev.t;if(dt>3.6)continue;const a=ss(0,.15,dt)*(1-ss(2.8,3.6,dt));const sc=backEase(dt/.4);const sz=(land?150:170)*u;
+    const side=(sceneOf(chapAt(ev.t))==='space'&&land)?-1:ev.side;const x=W/2+side*W*(land?.3+ev.r1*.1:.24+ev.r1*.08),y=H*(land?.3+ev.r2*.18:.3+ev.r2*.12)-dt*22*u,rot=Math.sin(dt*2.2+ev.r3*6)*.12;
+    ctx.save();ctx.globalAlpha=a;ctx.translate(x,y);ctx.rotate(rot);ctx.scale(sc,sc);ctx.globalCompositeOperation='lighter';ctx.drawImage(glow('rgba(255,255,255,.22)'),-sz,-sz,sz*2,sz*2);ctx.globalCompositeOperation='source-over';
+    ctx.font=`${sz}px ${EMOJI_FONT}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=20*u;ctx.fillText(ev.e,0,0);ctx.restore()}}
+function drawFrame(ctx,t,W,H,slot){const g=geom(W,H);const ci=chapAt(t);
+  if(LOOK.bg==='sketch'){drawSketch(ctx,t,W,H,g,slot||SK_SLOT_PREV)}else{
+  const e=getEnv(ci,W,H);ctx.save();ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';drawScene(ctx,e,t);
+  const dt=t-CH_START[ci];if(ci>0&&dt<1.6&&sceneOf(ci-1)!==sceneOf(ci)||ci>0&&dt<1.6&&getEnv(ci-1,W,H).h!==e.h){const pe=getEnv(ci-1,W,H);ctx.globalAlpha=1-ss(0,1.6,dt);if(ctx.globalAlpha>0.01)drawScene(ctx,pe,t);ctx.globalAlpha=1}
+  ctx.restore();ctx.drawImage(vignette(W,H),0,0);}
+  if(LOOK.emoji)drawEmojis(ctx,g,t);
+  if(LOOK.cards)drawTitleCard(ctx,g,t,ci);
+  if(LOOK.subs)drawCaption(ctx,g,t);
+  if(LOOK.corner)drawCorner(ctx,g,t,ci)}
+
+/* ================= SKETCH MODE: a character drawn slowly until the end ================= */
+const BUILTIN_SVGS=[
+{name:'Astro kid',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760" width="600" height="760">
+<path class="ns" d="M160,716 a140,14 0 1,0 280,0 a140,14 0 1,0 -280,0 Z" fill="rgba(0,0,0,.12)"/>
+<path d="M150,210 a150,150 0 1,0 300,0 a150,150 0 1,0 -300,0 Z" fill="#dfefff" fill-opacity=".55" stroke="#333" stroke-width="5"/>
+<path d="M205,225 a95,95 0 1,0 190,0 a95,95 0 1,0 -190,0 Z" fill="#f6c9a0" stroke="#333" stroke-width="4"/>
+<path d="M208,200 C214,128 296,104 356,128 C384,140 398,168 394,200 C372,172 334,164 304,176 C276,164 240,172 208,200 Z" fill="#5a3522" stroke="#333" stroke-width="4"/>
+<path d="M254,230 a11,14 0 1,0 22,0 a11,14 0 1,0 -22,0 Z" fill="#222"/>
+<path d="M324,230 a11,14 0 1,0 22,0 a11,14 0 1,0 -22,0 Z" fill="#222"/>
+<path class="ns" d="M260,224 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 Z M330,224 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0 Z" fill="#fff"/>
+<path d="M266,276 Q300,306 334,276" fill="none" stroke="#333" stroke-width="5" stroke-linecap="round"/>
+<path class="ns" d="M228,266 a17,10 0 1,0 34,0 a17,10 0 1,0 -34,0 Z M338,266 a17,10 0 1,0 34,0 a17,10 0 1,0 -34,0 Z" fill="#f29b9b" fill-opacity=".7"/>
+<path d="M190,150 A130,130 0 0,1 270,92" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+<path d="M190,360 a110,26 0 1,0 220,0 a110,26 0 1,0 -220,0 Z" fill="#c9d3e0" stroke="#333" stroke-width="4"/>
+<path d="M196,376 C180,436 186,520 206,562 L394,562 C414,520 420,436 404,376 Z" fill="#f4f6f9" stroke="#333" stroke-width="4"/>
+<path d="M265,420 h70 a10,10 0 0 1 10,10 v50 a10,10 0 0 1 -10,10 h-70 a10,10 0 0 1 -10,-10 v-50 a10,10 0 0 1 10,-10 Z" fill="#5b8def" stroke="#333" stroke-width="4"/>
+<path d="M273,446 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0 Z" fill="#ff5f5f"/>
+<path d="M303,446 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0 Z" fill="#ffd23f"/>
+<path d="M272,470 L328,470" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+<path d="M202,388 C150,362 120,302 130,252 L166,246 C166,292 192,330 226,352 Z" fill="#f4f6f9" stroke="#333" stroke-width="4"/>
+<path d="M117,232 a29,29 0 1,0 58,0 a29,29 0 1,0 -58,0 Z" fill="#ff8a3d" stroke="#333" stroke-width="4"/>
+<path d="M398,388 C446,420 462,480 452,522 L416,516 C421,480 406,442 384,422 Z" fill="#f4f6f9" stroke="#333" stroke-width="4"/>
+<path d="M406,538 a27,27 0 1,0 54,0 a27,27 0 1,0 -54,0 Z" fill="#ff8a3d" stroke="#333" stroke-width="4"/>
+<path d="M205,540 L395,540 L395,566 L205,566 Z" fill="#8a94a6" stroke="#333" stroke-width="4"/>
+<path d="M216,566 L210,660 L282,660 L290,566 Z" fill="#f4f6f9" stroke="#333" stroke-width="4"/>
+<path d="M310,566 L318,660 L390,660 L384,566 Z" fill="#f4f6f9" stroke="#333" stroke-width="4"/>
+<path d="M202,656 C196,690 206,706 232,706 L292,706 C296,690 292,666 286,656 Z" fill="#ff8a3d" stroke="#333" stroke-width="4"/>
+<path d="M314,656 C308,666 304,690 308,706 L368,706 C394,706 404,690 398,656 Z" fill="#ff8a3d" stroke="#333" stroke-width="4"/>
+<path d="M500,96 l12,28 30,2 -23,19 8,29 -27,-16 -27,16 8,-29 -23,-19 30,-2 Z" fill="#ffd23f" stroke="#333" stroke-width="4"/>
+<path d="M86,420 l8,18 20,1 -15,13 5,19 -18,-10 -18,10 5,-19 -15,-13 20,-1 Z" fill="#ffd23f" stroke="#333" stroke-width="4"/>
+<path d="M470,300 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0 Z" fill="#b18cff" stroke="#333" stroke-width="4"/>
+</svg>`},
+{name:'Bolt the robot',svg:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 760" width="600" height="760">
+<path class="ns" d="M150,712 a150,14 0 1,0 300,0 a150,14 0 1,0 -300,0 Z" fill="rgba(0,0,0,.12)"/>
+<path d="M300,74 L300,130" fill="none" stroke="#333" stroke-width="6"/>
+<path d="M286,62 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0 Z" fill="#ff5f5f" stroke="#333" stroke-width="4"/>
+<path d="M220,130 h160 a30,30 0 0 1 30,30 v110 a30,30 0 0 1 -30,30 h-160 a30,30 0 0 1 -30,-30 v-110 a30,30 0 0 1 30,-30 Z" fill="#9fc3df" stroke="#333" stroke-width="5"/>
+<path d="M175,190 h15 v42 h-15 Z" fill="#6f8396" stroke="#333" stroke-width="4"/>
+<path d="M410,190 h15 v42 h-15 Z" fill="#6f8396" stroke="#333" stroke-width="4"/>
+<path d="M225,210 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0 Z" fill="#fff" stroke="#333" stroke-width="4"/>
+<path d="M315,210 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0 Z" fill="#fff" stroke="#333" stroke-width="4"/>
+<path d="M248,214 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0 Z" fill="#1f2a38"/>
+<path d="M338,214 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0 Z" fill="#1f2a38"/>
+<path d="M257,256 h86 a12,12 0 0 1 12,12 v8 a12,12 0 0 1 -12,12 h-86 a12,12 0 0 1 -12,-12 v-8 a12,12 0 0 1 12,-12 Z" fill="#2d3a4a" stroke="#333" stroke-width="4"/>
+<path d="M272,258 v28 M293,258 v28 M314,258 v28 M335,258 v28" fill="none" stroke="#9fc3df" stroke-width="3"/>
+<path d="M276,300 h48 v26 h-48 Z" fill="#6f8396" stroke="#333" stroke-width="4"/>
+<path d="M206,326 h188 a36,36 0 0 1 36,36 v158 a36,36 0 0 1 -36,36 h-188 a36,36 0 0 1 -36,-36 v-158 a36,36 0 0 1 36,-36 Z" fill="#b8d0e3" stroke="#333" stroke-width="5"/>
+<path d="M250,370 h100 a14,14 0 0 1 14,14 v68 a14,14 0 0 1 -14,14 h-100 a14,14 0 0 1 -14,-14 v-68 a14,14 0 0 1 14,-14 Z" fill="#1f2a38" stroke="#333" stroke-width="4"/>
+<path d="M300,446 C262,418 266,392 285,392 C295,392 300,402 300,408 C300,402 305,392 315,392 C334,392 338,418 300,446 Z" fill="#ff5f7a" stroke="#333" stroke-width="3"/>
+<path d="M218,505 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 Z" fill="#ffd23f" stroke="#333" stroke-width="4"/>
+<path d="M258,505 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 Z" fill="#7dff8a" stroke="#333" stroke-width="4"/>
+<path d="M172,366 C125,376 100,440 108,506 L140,506 C138,452 152,408 175,402 Z" fill="#9fc3df" stroke="#333" stroke-width="4"/>
+<path d="M98,522 a24,24 0 1,0 48,0 a24,24 0 1,0 -48,0 Z" fill="#6f8396" stroke="#333" stroke-width="4"/>
+<path d="M428,366 C478,350 512,300 508,236 L476,236 C478,290 452,322 425,330 Z" fill="#9fc3df" stroke="#333" stroke-width="4"/>
+<path d="M468,220 a24,24 0 1,0 48,0 a24,24 0 1,0 -48,0 Z" fill="#6f8396" stroke="#333" stroke-width="4"/>
+<path d="M216,556 h54 v86 h-54 Z" fill="#9fc3df" stroke="#333" stroke-width="4"/>
+<path d="M330,556 h54 v86 h-54 Z" fill="#9fc3df" stroke="#333" stroke-width="4"/>
+<path d="M210,640 h70 a18,18 0 0 1 18,18 v22 h-106 v-22 a18,18 0 0 1 18,-18 Z" fill="#6f8396" stroke="#333" stroke-width="4"/>
+<path d="M320,640 h70 a18,18 0 0 1 18,18 v22 h-106 v-22 a18,18 0 0 1 18,-18 Z" fill="#6f8396" stroke="#333" stroke-width="4"/>
+<path d="M120,160 q20,-30 40,0 M450,120 q16,-24 32,0" fill="none" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+</svg>`}];
+
+let DRAWINGS=[],SEL=store.get('skSel',['b0']),SK_FINISH=false,DRAW_ID=0;
+const SK_SLOT_PREV={},SK_SLOT_EXP={};
+function strokeObj(pts){const n=pts.length/2,cum=new Float32Array(n);let L=0;for(let i=1;i<n;i++){L+=Math.hypot(pts[i*2]-pts[i*2-2],pts[i*2+1]-pts[i*2-1]);cum[i]=L}return{pts:Float32Array.from(pts),cum,len:L}}
+function cumOf(arr){const c=new Float64Array(arr.length+1);for(let i=0;i<arr.length;i++)c[i+1]=c[i]+arr[i].len;return c}
+function rdp(pts,eps){const n=pts.length/2;if(n<3)return pts;const keep=new Uint8Array(n);keep[0]=keep[n-1]=1;const st=[[0,n-1]];
+  while(st.length){const[a,b]=st.pop();let md=0,mi=-1;const ax=pts[a*2],ay=pts[a*2+1],bx=pts[b*2],by=pts[b*2+1],dx=bx-ax,dy=by-ay,dl=Math.hypot(dx,dy)||1;
+    for(let i=a+1;i<b;i++){const d=Math.abs((pts[i*2]-ax)*dy-(pts[i*2+1]-ay)*dx)/dl;if(d>md){md=d;mi=i}}if(md>eps&&mi>0){keep[mi]=1;st.push([a,mi],[mi,b])}}
+  const o=[];for(let i=0;i<n;i++)if(keep[i])o.push(pts[i*2],pts[i*2+1]);return o}
+function chaikin(p){const n=p.length/2;if(n<3)return p;const o=[p[0],p[1]];for(let i=0;i<n-1;i++){const x0=p[i*2],y0=p[i*2+1],x1=p[i*2+2],y1=p[i*2+3];o.push(x0*.75+x1*.25,y0*.75+y1*.25,x0*.25+x1*.75,y0*.25+y1*.75)}o.push(p[n*2-2],p[n*2-1]);return o}
+function orderStrokes(list,w,h){ // greedy nearest-next, preferring long strokes: reads like an artist doing big shapes then details
+  const out=[],used=new Uint8Array(list.length);let px=w/2,py=0;
+  for(let k=0;k<list.length;k++){let best=-1,bc=1e18,rev=false;
+    for(let i=0;i<list.length;i++){if(used[i])continue;const s=list[i],n=s.length/2;const d0=Math.hypot(s[0]-px,s[1]-py),d1=Math.hypot(s[n*2-2]-px,s[n*2-1]-py);const L=s._len;const bonus=1+L/60;
+      if(d0/bonus<bc){bc=d0/bonus;best=i;rev=false}if(d1/bonus<bc){bc=d1/bonus;best=i;rev=true}}
+    used[best]=1;let s=list[best];if(rev){const r=[];for(let j=s.length/2-1;j>=0;j--)r.push(s[j*2],s[j*2+1]);s=r}out.push(s);px=s[s.length-2];py=s[s.length-1]}
+  return out}
+function polyLen(p){let L=0;for(let i=2;i<p.length;i+=2)L+=Math.hypot(p[i]-p[i-2],p[i+1]-p[i-1]);return L}
+function blurGray(src,w,h,sig){const r=Math.max(1,Math.ceil(sig*2.5)),k=[];let ks=0;for(let i=-r;i<=r;i++){const v=Math.exp(-i*i/(2*sig*sig));k.push(v);ks+=v}for(let i=0;i<k.length;i++)k[i]/=ks;
+  const tmp=new Float32Array(w*h),out=new Float32Array(w*h);
+  for(let y=0;y<h;y++){const o=y*w;for(let x=0;x<w;x++){let s=0;for(let i=-r;i<=r;i++){const xx=x+i<0?0:x+i>=w?w-1:x+i;s+=src[o+xx]*k[i+r]}tmp[o+x]=s}}
+  for(let x=0;x<w;x++){for(let y=0;y<h;y++){let s=0;for(let i=-r;i<=r;i++){const yy=y+i<0?0:y+i>=h?h-1:y+i;s+=tmp[yy*w+x]*k[i+r]}out[y*w+x]=s}}return out}
+function hatchFrom(lum,w,h,mask,opts){ // shading: straight hatch lines through darker areas, sweeping like a pencil
+  const sp=opts.spacing,levels=[[.62,Math.PI/4],[.44,-Math.PI/4],[.27,0]],out=[];
+  levels.forEach(([lv,ang],li)=>{const dx=Math.cos(ang),dy=Math.sin(ang),nx=-dy,ny=dx;const D=Math.hypot(w,h);let dir=1;
+    for(let off=-D;off<=D;off+=sp*(1+li*.15)){const cx=w/2+nx*off,cy=h/2+ny*off;let run=null;const seg=[];
+      for(let s=-D/2;s<=D/2;s+=1){const x=cx+dx*s,y=cy+dy*s;const xi=x|0,yi=y|0;const inside=xi>=0&&yi>=0&&xi<w&&yi<h;const dark=inside&&lum[yi*w+xi]<lv&&(!mask||mask[yi*w+xi]);
+        if(dark){if(!run)run=[x,y];run[2]=x;run[3]=y}else if(run){if(Math.hypot(run[2]-run[0],run[3]-run[1])>5)seg.push(run);run=null}}
+      if(run&&Math.hypot(run[2]-run[0],run[3]-run[1])>5)seg.push(run);
+      if(dir<0)seg.reverse();seg.forEach(r=>out.push(dir>0?[r[0],r[1],r[2],r[3]]:[r[2],r[3],r[0],r[1]]));if(seg.length)dir=-dir}});
+  return out}
+function finishDrawing(D){D.strokes=D.rawStrokes.map(strokeObj).filter(s=>s.len>0);D.hatch=D.rawHatch.map(strokeObj);D.cumO=cumOf(D.strokes);D.cumH=cumOf(D.hatch);D.Lo=D.cumO[D.strokes.length];D.Lh=D.cumH[D.hatch.length];
+  const th=mk(72,72),x=th.getContext('2d');x.fillStyle='#f4efe4';x.fillRect(0,0,72,72);const k=Math.min(64/D.w,64/D.h);x.translate((72-D.w*k)/2,(72-D.h*k)/2);x.globalAlpha=.9;x.drawImage(D.color,0,0,D.w*k,D.h*k);x.globalAlpha=1;x.scale(k,k);x.strokeStyle='#222';x.lineWidth=1.2/k;x.beginPath();D.strokes.forEach(s=>{x.moveTo(s.pts[0],s.pts[1]);for(let i=2;i<s.pts.length;i+=2)x.lineTo(s.pts[i],s.pts[i+1])});x.stroke();D.thumb=th;return D}
+function lumOf(cv){const w=cv.width,h=cv.height,d=cv.getContext('2d').getImageData(0,0,w,h).data,l=new Float32Array(w*h),a=new Uint8Array(w*h);for(let i=0;i<w*h;i++){const al=d[i*4+3]/255;l[i]=((.299*d[i*4]+.587*d[i*4+1]+.114*d[i*4+2])/255)*al+(1-al);a[i]=d[i*4+3]>40?1:0}return{l,a}}
+function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('Could not open that image'));i.src=src})}
+async function builtinDrawing(b,idx){
+  const holder=document.createElement('div');holder.style.cssText='position:absolute;left:-9999px;top:0;width:600px;height:760px;visibility:hidden';holder.innerHTML=b.svg;document.body.appendChild(holder);
+  const raw=[];holder.querySelectorAll('path').forEach(p=>{if(p.classList.contains('ns'))return;const d=p.getAttribute('d');d.split(/(?=M)/).forEach(sub=>{const q=document.createElementNS('http://www.w3.org/2000/svg','path');q.setAttribute('d',sub);holder.firstElementChild.appendChild(q);const L=q.getTotalLength();if(L<2){q.remove();return}const pts=[];const n=Math.max(2,Math.ceil(L/3));for(let i=0;i<=n;i++){const pt=q.getPointAtLength(L*i/n);pts.push(pt.x,pt.y)}raw.push(pts);q.remove()})});
+  holder.remove();
+  const img=await loadImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(b.svg));const col=mk(1200,1520);col.getContext('2d').drawImage(img,0,0,1200,1520);
+  const sm=mk(600,760);sm.getContext('2d').drawImage(img,0,0,600,760);const{l,a}=lumOf(sm);
+  return finishDrawing({id:'b'+idx,name:b.name,builtin:true,w:600,h:760,color:col,rawStrokes:raw,rawHatch:hatchFrom(l,600,760,a,{spacing:7})})}
+async function traceUpload(file,detail,keepId){
+  const url=URL.createObjectURL(file);let img;try{img=await loadImg(url)}finally{setTimeout(()=>URL.revokeObjectURL(url),5000)}
+  const max=[560,720,900][detail];const sc=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));const w=Math.max(16,Math.round(img.naturalWidth*sc)),h=Math.max(16,Math.round(img.naturalHeight*sc));
+  const cv=mk(w,h);const cx=cv.getContext('2d');cx.drawImage(img,0,0,w,h);const{l,a}=lumOf(cv);
+  let transp=0;for(let i=0;i<a.length;i+=7)if(!a[i])transp++;const hasAlpha=transp/(a.length/7)>.02;
+  let fg=a;if(!hasAlpha){const px=cx.getImageData(0,0,w,h).data;const bgm=new Uint8Array(w*h),q=[];const tol=26;
+    const seed=i=>{if(!bgm[i]){bgm[i]=1;q.push(i)}};for(let x=0;x<w;x++){seed(x);seed((h-1)*w+x)}for(let y=0;y<h;y++){seed(y*w);seed(y*w+w-1)}
+    while(q.length){const i=q.pop();const x=i%w,y=(i/w)|0;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=w||yy>=h)continue;const j=yy*w+xx;if(bgm[j])continue;
+      if(Math.abs(px[i*4]-px[j*4])+Math.abs(px[i*4+1]-px[j*4+1])+Math.abs(px[i*4+2]-px[j*4+2])<tol){bgm[j]=1;q.push(j)}}}
+    let nb=0;for(let i=0;i<w*h;i++)nb+=bgm[i];if(nb>w*h*.08&&nb<w*h*.92){fg=new Uint8Array(w*h);for(let i=0;i<w*h;i++)fg[i]=bgm[i]?0:1}else fg=null}
+  const cut=!hasAlpha&&fg!=null;
+  await new Promise(r=>setTimeout(r,0));
+  const g1=blurGray(l,w,h,1.0),g2=blurGray(l,w,h,1.8);const D=new Float32Array(w*h);for(let i=0;i<w*h;i++)D[i]=g2[i]-g1[i];
+  const samp=[];for(let i=0;i<D.length;i+=3)samp.push(D[i]);samp.sort((x,y)=>y-x);const thr=Math.max(.012,samp[Math.floor(samp.length*[.06,.085,.11][detail])]||.02);
+  const B=new Uint8Array(w*h);for(let i=0;i<w*h;i++)B[i]=D[i]>thr?1:0;
+  // drop specks
+  const lab=new Int32Array(w*h),stack=[];const minC=[24,16,10][detail];
+  for(let i=0;i<w*h;i++){if(!B[i]||lab[i])continue;const comp=[];stack.push(i);lab[i]=1;while(stack.length){const p=stack.pop();comp.push(p);const x=p%w,y=(p/w)|0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=w||yy>=h)continue;const q=yy*w+xx;if(B[q]&&!lab[q]){lab[q]=1;stack.push(q)}}}if(comp.length<minC)comp.forEach(p=>B[p]=0)}
+  await new Promise(r=>setTimeout(r,0));
+  // Zhang-Suen thinning → 1px lines
+  let changed=true;const del=[];while(changed){changed=false;for(let pass=0;pass<2;pass++){del.length=0;
+    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(!B[i])continue;const p2=B[i-w],p3=B[i-w+1],p4=B[i+1],p5=B[i+w+1],p6=B[i+w],p7=B[i+w-1],p8=B[i-1],p9=B[i-w-1];
+      const bn=p2+p3+p4+p5+p6+p7+p8+p9;if(bn<2||bn>6)continue;const an=(!p2&&p3)+(!p3&&p4)+(!p4&&p5)+(!p5&&p6)+(!p6&&p7)+(!p7&&p8)+(!p8&&p9)+(!p9&&p2);if(an!==1)continue;
+      if(pass===0?(p2*p4*p6===0&&p4*p6*p8===0):(p2*p4*p8===0&&p2*p6*p8===0))del.push(i)}
+    if(del.length){changed=true;del.forEach(i=>B[i]=0)}}}
+  // trace skeleton into polylines
+  const N8=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];const vis=new Uint8Array(w*h);
+  const deg=i=>{const x=i%w,y=(i/w)|0;let c=0;for(const[dx,dy]of N8){const xx=x+dx,yy=y+dy;if(xx>=0&&yy>=0&&xx<w&&yy<h&&B[yy*w+xx])c++}return c};
+  const walk=(s)=>{const pts=[s%w,(s/w)|0];vis[s]=1;let cur=s,pdx=0,pdy=0;for(;;){const x=cur%w,y=(cur/w)|0;let best=-1,bs=-9,bdx=0,bdy=0;for(const[dx,dy]of N8){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=w||yy>=h)continue;const q=yy*w+xx;if(!B[q]||vis[q])continue;const sc=dx*pdx+dy*pdy-(Math.abs(dx)+Math.abs(dy)>1?.3:0);if(sc>bs){bs=sc;best=q;bdx=dx;bdy=dy}}if(best<0)break;vis[best]=1;pts.push(best%w,(best/w)|0);cur=best;pdx=bdx;pdy=bdy}return pts};
+  const raw=[];const minL=[10,7,5][detail];
+  const push=p=>{if(p.length<4)return;const L=polyLen(p);if(L<minL)return;let q=chaikin(rdp(p,.9));q._len=L;raw.push(q)};
+  for(let i=0;i<w*h;i++)if(B[i]&&!vis[i]&&deg(i)===1)push(walk(i));
+  for(let i=0;i<w*h;i++)if(B[i]&&!vis[i]){const a1=walk(i);vis[i]=0;const a2=walk(i);const r=[];for(let j=a2.length/2-1;j>0;j--)r.push(a2[j*2],a2[j*2+1]);push(r.concat(a1))}
+  if(fg){const dil=r=>{for(let j=0;j<r.length;j+=2){const x=r[j]|0,y=r[j+1]|0;for(let dy=-3;dy<=3;dy+=3)for(let dx=-3;dx<=3;dx+=3){const xx=x+dx,yy=y+dy;if(xx>=0&&yy>=0&&xx<w&&yy<h&&fg[yy*w+xx])return true}}return false};for(let j=raw.length-1;j>=0;j--)if(!dil(raw[j]))raw.splice(j,1)}
+  raw.sort((x,y)=>y._len-x._len);const lim=[1400,2200,3000][detail];const kept=raw.slice(0,lim);
+  const ordered=orderStrokes(kept,w,h);
+  await new Promise(r=>setTimeout(r,0));
+  const g3=blurGray(l,w,h,2.2);let hatch=hatchFrom(g3,w,h,fg,{spacing:Math.max(5,w/105)});if(hatch.length>5000){hatch=hatchFrom(g3,w,h,fg,{spacing:Math.max(5,w/105)*hatch.length/5000})}
+  const cs=Math.min(2,1600/Math.max(w,h));const col=mk(Math.round(w*cs),Math.round(h*cs));const cc=col.getContext('2d');cc.filter='saturate(1.25)';cc.drawImage(img,0,0,col.width,col.height);cc.filter='none';
+  if(cut){const m=mk(w,h),mx=m.getContext('2d'),id=mx.createImageData(w,h);for(let i=0;i<w*h;i++){id.data[i*4+3]=fg[i]?255:0}mx.putImageData(id,0,0);const m2=mk(col.width,col.height),m2x=m2.getContext('2d');m2x.filter='blur(2px)';m2x.drawImage(m,0,0,col.width,col.height);cc.globalCompositeOperation='destination-in';cc.drawImage(m2,0,0);cc.globalCompositeOperation='source-over'}
+  else if(!hasAlpha){cc.globalCompositeOperation='destination-in';const gr=cc.createRadialGradient(col.width/2,col.height/2,Math.min(col.width,col.height)*.32,col.width/2,col.height/2,Math.hypot(col.width,col.height)*.52);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');cc.fillStyle=gr;cc.fillRect(0,0,col.width,col.height);cc.globalCompositeOperation='source-over'}
+  return finishDrawing({file,id:keepId||('u'+(++DRAW_ID)+'_'+hashStr(file.name+file.size)),name:file.name.replace(/\.[^.]+$/,''),builtin:false,w,h,color:col,rawStrokes:ordered,rawHatch:hatch})}
+
+/* --- progress → what is drawn --- */
+const skPhases=()=>LOOK.skColor?[.66,.92]:[.74,1];
+function bsearch(c,L){let lo=0,hi=c.length-2;while(lo<hi){const m=(lo+hi+1)>>1;if(c[m]<=L)lo=m;else hi=m-1}return lo}
+function inkState(D,p){const[a,b]=skPhases();const st={o:0,h:0,part:null,color:0,pen:true};
+  if(p<=a){const L=clamp(p/a)*D.Lo;const i=bsearch(D.cumO,L);st.o=i;if(i<D.strokes.length)st.part={s:D.strokes[i],len:L-D.cumO[i]};return st}
+  st.o=D.strokes.length;if(p<=b){const L=clamp((p-a)/(b-a))*D.Lh;const i=bsearch(D.cumH,L);st.h=i;if(i<D.hatch.length)st.part={s:D.hatch[i],len:L-D.cumH[i],hatch:true};return st}
+  st.h=D.hatch.length;st.color=clamp((p-b)/Math.max(.001,1-b));st.pen=false;return st}
+function pointOn(s,len){const c=s.cum,p=s.pts,n=c.length;if(n<2)return[p[0],p[1],0];let lo=0,hi=n-2;while(lo<hi){const m=(lo+hi+1)>>1;if(c[m]<=len)lo=m;else hi=m-1}const i=lo;const seg=(c[i+1]-c[i])||1,f=clamp((len-c[i])/seg);return[p[i*2]+(p[i*2+2]-p[i*2])*f,p[i*2+1]+(p[i*2+3]-p[i*2+1])*f,i]}
+function penAt(D,p){const st=inkState(D,p);if(st.part)return pointOn(st.part.s,st.part.len);const s=st.h?D.hatch[st.h-1]:D.strokes[Math.max(0,st.o-1)];if(!s)return[D.w/2,D.h/2];return[s.pts[s.pts.length-2],s.pts[s.pts.length-1]]}
+function skInk(){return LOOK.skPaper==='paper'?['rgba(38,34,31,.92)','rgba(38,34,31,.30)','rgba(38,34,31,.42)']:LOOK.skPaper==='chalk'?['rgba(246,244,236,.92)','rgba(246,244,236,.3)','rgba(246,244,236,.38)']:['rgba(226,228,255,.92)','rgba(226,228,255,.3)','rgba(226,228,255,.38)']}
+function strokePath(x,s,upto){const p=s.pts;x.moveTo(p[0],p[1]);if(upto==null){for(let i=2;i<p.length;i+=2)x.lineTo(p[i],p[i+1]);return}const c=s.cum;let i=1;for(;i<c.length&&c[i]<=upto;i++)x.lineTo(p[i*2],p[i*2+1]);if(i<c.length){const f=(upto-c[i-1])/((c[i]-c[i-1])||1);x.lineTo(p[i*2-2]+(p[i*2]-p[i*2-2])*f,p[i*2-1]+(p[i*2+1]-p[i*2-1])*f)}}
+function drawStrokes(x,D,list,from,to,k,u,hatch,jit){if(to<=from)return;const[c1,c2,c3]=skInk();x.lineCap='round';x.lineJoin='round';
+  if(hatch){x.strokeStyle=c3;x.lineWidth=1.2*u/k;x.beginPath();for(let i=from;i<to;i++)strokePath(x,list[i]);x.stroke();return}
+  x.strokeStyle=c1;x.lineWidth=2.3*u/k;x.beginPath();for(let i=from;i<to;i++)strokePath(x,list[i]);x.stroke();
+  x.save();x.translate(.8*u/k,.6*u/k);x.strokeStyle=c2;x.lineWidth=1.3*u/k;x.beginPath();for(let i=from;i<to;i++)strokePath(x,list[i]);x.stroke();x.restore()}
+function ensureInk(slot,D,k,u,st){const key=D.id+'|'+k.toFixed(5)+'|'+LOOK.skPaper;let c=slot.ink;
+  if(!c||c.key!==key){c=slot.ink={key,cv:mk(Math.ceil(D.w*k)+8,Math.ceil(D.h*k)+8),o:0,h:0}}
+  const x=c.cv.getContext('2d');if(st.o<c.o||st.h<c.h){x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,c.cv.width,c.cv.height);c.o=0;c.h=0}
+  x.setTransform(k,0,0,k,4,4);drawStrokes(x,D,D.strokes,c.o,st.o,k,u,false);c.o=st.o;drawStrokes(x,D,D.hatch,c.h,st.h,k,u,true);c.h=st.h;return c}
+const PAPER=new Map();
+function paperBg(W,H){const key=W+'x'+H+LOOK.skPaper;let c=PAPER.get(key);if(c)return c;c=mk(W,H);const x=c.getContext('2d');const R=rnd(77);const s=Math.min(W,H)/1080;
+  if(LOOK.skPaper==='paper'){x.fillStyle='#f3eee2';x.fillRect(0,0,W,H);for(let i=0;i<9000;i++){x.fillStyle=`rgba(${R()<.5?'120,100,70':'255,255,255'},${.03+R()*.05})`;x.fillRect(R()*W,R()*H,1.6*s,1.6*s)}
+    x.strokeStyle='rgba(90,120,170,.07)';x.lineWidth=1.2*s;for(let y=H*.08;y<H;y+=36*s){x.beginPath();x.moveTo(0,y);x.lineTo(W,y);x.stroke()}
+    const g=x.createRadialGradient(W/2,H/2,Math.min(W,H)*.4,W/2,H/2,Math.hypot(W,H)*.6);g.addColorStop(0,'rgba(80,60,30,0)');g.addColorStop(1,'rgba(80,60,30,.22)');x.fillStyle=g;x.fillRect(0,0,W,H)}
+  else{x.fillStyle=LOOK.skPaper==='chalk'?'#1d2b25':'#12152a';x.fillRect(0,0,W,H);x.globalCompositeOperation='lighter';for(let i=0;i<14;i++){const r=Math.max(W,H)*(.15+R()*.25);x.drawImage(glow('rgba(255,255,255,.05)'),R()*W-r,R()*H-r,r*2,r*2)}x.globalCompositeOperation='source-over';
+    for(let i=0;i<5000;i++){x.fillStyle=`rgba(255,255,255,${.015+R()*.03})`;x.fillRect(R()*W,R()*H,1.5*s,1.5*s)}
+    const g=x.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.hypot(W,H)*.6);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.45)');x.fillStyle=g;x.fillRect(0,0,W,H)}
+  if(PAPER.size>4)PAPER.delete(PAPER.keys().next().value);PAPER.set(key,c);return c}
+function skBox(W,H){return W>=H?{x:W*.08,y:H*.035,w:W*.84,h:H*.75}:{x:W*.06,y:H*.11,w:W*.88,h:H*.56}}
+function sketchAt(t){const sel=SEL.map(id=>DRAWINGS.find(d=>d.id===id)).filter(Boolean);if(!sel.length)return null;
+  const pr=(a,b)=>{const len=Math.max(.1,b-a);const hold=Math.min(25,len*.04);return clamp((t-a)/Math.max(.1,len-hold))};
+  const fade=(a,b,last)=>last?1:clamp((b-t)/1.2);
+  if(LOOK.skPace==='chapter'&&CH_START.length>1){const ci=chapAt(t);const a=CH_START[ci],b=chapEnd(ci);return{D:sel[ci%sel.length],p:pr(a,b),fade:fade(a,b,ci===CH_START.length-1),seg:b-a}}
+  const n=sel.length,seg=DURATION/n,i=Math.min(n-1,Math.floor(t/seg)),a=i*seg,b=(i+1)*seg;return{D:sel[i],p:pr(a,b),fade:fade(a,b,i===n-1),seg}}
+function segLenFor(idx){const n=Math.max(1,SEL.length);if(LOOK.skPace==='chapter'&&CH_START.length>1){let tot=0,c=0;for(let i=0;i<CH_START.length;i++)if(i%n===idx){tot+=chapEnd(i)-CH_START[i];c++}return c?tot/c:0}return DURATION/n}
+function pencilSpeed(D,idx){const[W,H]=RES;const box=skBox(W,H);const k=Math.min(box.w/D.w,box.h/D.h)*(1080/Math.min(W,H));const seg=segLenFor(idx);const hold=Math.min(25,seg*.04);const tOut=Math.max(1,(seg-hold)*skPhases()[0]);return D.Lo*k/tOut}
+function rateDrawing(D){const dens=D.Lo/(D.w+D.h);if(D.strokes.length<20||dens<5)return{c:'#ffb547',t:'Simple: best for short videos, or use it as one of several drawings'};if(D.strokes.length>2600||dens>70)return{c:'#ff6b6b',t:'Very busy: try "Simple" detail or a cleaner image'};return{c:'#43d19e',t:'Great for sketching'}}
+function drawPencil(ctx,x,y,u,t){ctx.save();ctx.translate(x,y);ctx.rotate(-2.25+Math.sin(t*2.1)*.04);const L=150*u,w=17*u;
+  ctx.shadowColor='rgba(0,0,0,.25)';ctx.shadowBlur=12*u;ctx.shadowOffsetX=6*u;ctx.shadowOffsetY=8*u;
+  ctx.fillStyle='#e9c48f';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(28*u,-w/2);ctx.lineTo(28*u,w/2);ctx.closePath();ctx.fill();ctx.shadowColor='transparent';
+  ctx.fillStyle='#2b2b2b';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(9*u,-w*.17);ctx.lineTo(9*u,w*.17);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#f6c431';ctx.fillRect(28*u,-w/2,L-50*u,w);ctx.fillStyle='rgba(0,0,0,.12)';ctx.fillRect(28*u,w/6,L-50*u,w/3);
+  ctx.fillStyle='#b9bec7';ctx.fillRect(L-22*u,-w/2,10*u,w);ctx.fillStyle='#f28b9a';ctx.beginPath();if(ctx.roundRect)ctx.roundRect(L-12*u,-w/2,14*u,w,[0,5*u,5*u,0]);else ctx.rect(L-12*u,-w/2,14*u,w);ctx.fill();ctx.restore()}
+function drawSketch(ctx,t,W,H,g,slot){ctx.drawImage(paperBg(W,H),0,0);const S=sketchAt(t);const u=g.u;
+  if(!S){ctx.save();ctx.fillStyle=LOOK.skPaper==='paper'?'rgba(0,0,0,.45)':'rgba(255,255,255,.6)';ctx.font=`600 ${34*u}px ${FONT}`;ctx.textAlign='center';ctx.fillText('Pick or upload a character to draw',W/2,H*.4);ctx.restore();return}
+  const{D}=S;const p=SK_FINISH?1:S.p;const fadeA=SK_FINISH?1:(S.fade??1);const box=skBox(W,H);const k=Math.min(box.w/D.w,box.h/D.h),dw=D.w*k,dh=D.h*k,ox=box.x+(box.w-dw)/2,oy=box.y+(box.h-dh)/2;
+  const st=inkState(D,p);const[,pb]=skPhases();
+  ctx.save();ctx.globalAlpha=fadeA;
+  if(LOOK.skCam&&!SK_FINISH){let ax=0,ay=0;for(let i=-2;i<=2;i++){const q=penAt(D,clamp(p+i*.006,0,pb));ax+=q[0];ay+=q[1]}ax/=5;ay/=5;const fx=ox+ax*k,fy=oy+ay*k;
+    const z=1+.13*ss(0,.03,p)*(1-ss(pb-.06,pb,p));const cx=box.x+box.w/2,cy=box.y+box.h/2;const tx=cx+(fx-cx)*.55,ty=cy+(fy-cy)*.55;ctx.translate(tx,ty);ctx.scale(z,z);ctx.translate(-tx,-ty)}
+  if(st.color>0){ctx.globalAlpha=st.color*.92*fadeA;ctx.globalCompositeOperation=LOOK.skPaper==='paper'?'multiply':'screen';ctx.drawImage(D.color,ox,oy,dw,dh);ctx.globalAlpha=fadeA;ctx.globalCompositeOperation='source-over'}
+  const ink=ensureInk(slot,D,k,u,st);ctx.drawImage(ink.cv,ox-4,oy-4);
+  let pen=null;if(st.part){ctx.save();ctx.translate(ox,oy);ctx.scale(k,k);const[c1,,c3]=skInk();ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=st.part.hatch?c3:c1;ctx.lineWidth=(st.part.hatch?1.2:2.3)*u/k;ctx.beginPath();strokePath(ctx,st.part.s,st.part.len);ctx.stroke();ctx.restore();const q=pointOn(st.part.s,st.part.len);pen=[ox+q[0]*k,oy+q[1]*k]}
+  else if(st.pen){const q=penAt(D,p);pen=[ox+q[0]*k,oy+q[1]*k]}
+  if(pen&&LOOK.skPen)drawPencil(ctx,pen[0],pen[1],u,t);
+  ctx.restore()}
+
+/* ================= preview ================= */
+const pv=$('pv'),pctx=pv.getContext('2d');let T=0,playing=false,lastNow=performance.now(),seeking=false;
+function setPreviewSize(){const[W,H]=RES;const s=Math.min(1,960/Math.max(W,H));pv.width=Math.round(W*s);pv.height=Math.round(H*s)}
+function drawPreview(){const[W,H]=RES;pctx.setTransform(pv.width/W,0,0,pv.height/H,0,0);drawFrame(pctx,T,W,H)}
+let CUR_EL=null;
+function wantAudio(t){const off=introOff();if(off&&introURL&&t<off)return{el:audI,base:0};if(audioURL&&MAIN&&t>=off&&t<off+MAIN.duration)return{el:aud,base:off};return null}
+function stopAudio(){aud.pause();audI.pause();CUR_EL=null}
+function startAudioAt(t){const w=wantAudio(t);if(!w){stopAudio();return}if(CUR_EL&&CUR_EL!==w.el)CUR_EL.pause();w.el.currentTime=Math.max(0,t-w.base);w.el.play().catch(()=>{});CUR_EL=w.el}
+function tick(now){const dt=Math.min(.1,(now-lastNow)/1000);lastNow=now;
+  if(playing){const w=wantAudio(T);if(w&&CUR_EL===w.el&&!w.el.paused&&!seeking)T=w.base+w.el.currentTime;else T+=dt;
+    const w2=wantAudio(T);if(!seeking&&((w2&&CUR_EL!==w2.el)||(!w2&&CUR_EL)))startAudioAt(T);
+    if(T>=DURATION){T=DURATION;playing=false;stopAudio();$('playBtn').textContent='▶ Play'}updTime()}
+  if(!exporting)drawPreview();requestAnimationFrame(tick)}
+function updTime(){$('time').textContent=`${fmt(T)} / ${fmt(DURATION)}`;if(!seeking)$('seek').value=Math.round(T/DURATION*1000)}
+function seekTo(t){T=clamp(t,0,DURATION);if(playing)startAudioAt(T);updTime()}
+$('seek').addEventListener('input',()=>{seeking=true;seekTo($('seek').value/1000*DURATION)});$('seek').addEventListener('change',()=>{seeking=false});
+$('playBtn').addEventListener('click',()=>{if(T>=DURATION-.05)seekTo(0);playing=!playing;$('playBtn').textContent=playing?'❚❚ Pause':'▶ Play';if(playing)startAudioAt(T);else stopAudio()});
+
+/* ================= chapters list ================= */
+function renderChapters(){const box=$('chaps');const chs=STORY.chapters;$('chapCount').textContent=`${chs.length} chapter${chs.length>1?'s':''} · ${EVENTS.length} emoji pop-ups`;
+  box.innerHTML='';chs.forEach((c,i)=>{const d=document.createElement('div');d.className='chap';const tm=document.createElement('span');tm.className='tm';tm.textContent=fmt(CH_START[i]||0);tm.title='Jump here';tm.onclick=()=>{seekTo((CH_START[i]||0)+.05)};
+    const tt=document.createElement('span');tt.className='tt';tt.textContent=c.intro?($('vTitle').value.trim()?'Intro · '+$('vTitle').value.trim():'Intro')+(c.isIntro&&!introTextUnits().length?' (no subtitles)':''):(c.label&&c.label!==c.title?c.label+' · ':'')+c.title;tt.title=tt.textContent;
+    const sel=document.createElement('select');SCENES.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=SCENE_LABEL[k]+(k===c.autoScene?' (auto)':'');sel.appendChild(o)});sel.value=sceneOf(i);sel.onchange=()=>{setOverride(i,sel.value);seekTo((CH_START[i]||0)+2)};
+    if(LOOK.bg==='sketch'){const sp=document.createElement('span');sp.className='pill';sp.textContent=LOOK.skPace==='chapter'&&chs.length>1?'✏️ drawing '+(SEL.length?(i%SEL.length)+1:'–'):SEL.length>1?'✏️ '+SEL.length+' drawings in a row':'✏️ sketch';d.append(tm,tt,sp)}else d.append(tm,tt,sel);box.appendChild(d)})}
+
+/* ================= wiring ================= */
+function refreshStory(keepSync){const text=$('story').value;STORY=parseStory(text,$('headMode').value);addIntroToStory();const n=(text.match(/\S+/g)||[]).length;$('wordCount').textContent=n?`${n.toLocaleString()} words · ~${fmt(n/155*60)} of narration`:'';
+  if(RAW&&RAW.kind==='auto'&&!keepSync){RAW=null;SYNC='none';$('syncMsg').innerHTML=SRC?'<span style="color:var(--warn)">Story changed: click Auto-sync again.</span>':''}
+  if(RAW&&RAW.kind==='srt')RAW.cues=srtCuesNow();
+  ENV.clear();finalizeCues();setSyncState()}
+let storyTimer=null;$('story').addEventListener('input',()=>{clearTimeout(storyTimer);storyTimer=setTimeout(()=>{refreshStory();store.set('story',$('story').value.length<1.5e6?$('story').value:'')},600)});
+$('headMode').addEventListener('change',()=>{store.set('headMode',$('headMode').value);refreshStory()});
+$('vTitle').addEventListener('input',()=>{store.set('vTitle',$('vTitle').value);renderChapters()});
+$('shift').addEventListener('change',finalizeCues);$('wpm').addEventListener('change',()=>{if(!RAW)finalizeCues()});
+function bindDrop(drop,input,handler){drop.addEventListener('click',()=>input.click());input.addEventListener('change',()=>{if(input.files[0])handler(input.files[0]);input.value=''});
+  drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over')});drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+  drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');const f=e.dataTransfer.files[0];if(f)handler(f)})}
+bindDrop($('audDrop'),$('audFile'),async f=>{$('audLabel').textContent='Reading '+f.name+'…';
+  try{MAIN=await makeSource(f);if(audioURL)URL.revokeObjectURL(audioURL);audioURL=URL.createObjectURL(f);aud.src=audioURL;
+    $('audDrop').classList.add('done');$('audLabel').textContent=`${f.name} · ${fmt(MAIN.duration)}`;if(RAW&&RAW.kind==='auto'){RAW=null;SYNC='none'}
+    rebuildSource();$('syncMsg').innerHTML=RAW?'':'Now click <b>✨ Auto-sync</b>, or drop the matching .srt.'}
+  catch(e){console.error(e);MAIN=null;rebuildSource();$('audLabel').textContent='Could not read that file: '+(e.message||e)}});
+bindDrop($('introDrop'),$('introFile'),async f=>{$('introLabel').textContent='Reading '+f.name+'…';
+  try{INTRO_SRC=await makeSource(f);if(introURL)URL.revokeObjectURL(introURL);introURL=URL.createObjectURL(f);audI.src=introURL;$('introDrop').classList.add('done');$('introLabel').textContent=`${f.name} · ${fmt(INTRO_SRC.duration)} · plays before the narration`;refreshStory();rebuildSource()}
+  catch(e){console.error(e);INTRO_SRC=null;$('introLabel').textContent='Could not read that file: '+(e.message||e)}});
+function syncIntroUI(){const m=introMode();$('introBox').style.display=m==='none'?'none':'';$('introFileRow').style.display=m==='file'?'':'none';$('introLenRow').style.display=m==='inaudio'&&!$('introText').value.trim()?'':'none';
+  $('introHint').innerHTML=m==='file'?'The intro file plays first, then your narration. Paste what the intro says to give it subtitles (optional).':m==='inaudio'?'Paste what the intro says (the exact words) so it gets subtitles and the story sync starts after it. No text? Enter the intro length instead.':''}
+const saveIntro=()=>{store.set('intro',{mode:introMode(),text:$('introText').value.length<200000?$('introText').value:'',len:$('introLen').value})};
+$('introMode').addEventListener('change',()=>{syncIntroUI();saveIntro();refreshStory();rebuildSource()});
+let introTimer=null;$('introText').addEventListener('input',()=>{syncIntroUI();clearTimeout(introTimer);introTimer=setTimeout(()=>{saveIntro();refreshStory()},600)});
+$('introLen').addEventListener('change',()=>{saveIntro();refreshStory()});
+bindDrop($('srtDrop'),$('srtFile'),async f=>{const c=parseSRT(await f.text());if(!c.length){toast('Couldn\'t read any subtitle lines from that file');return}
+  RAW={kind:'srt',srt:c,cues:[]};RAW.cues=srtCuesNow();SYNC='srt';$('srtDrop').classList.add('done');$('srtLabel').textContent=`${f.name}: ${c.length.toLocaleString()} lines, ${fmt(c[c.length-1].b)}`;finalizeCues();setSyncState();$('syncMsg').innerHTML='<span style="color:var(--ok)">✓ Using your subtitles.</span>'});
+$('syncBtn').addEventListener('click',autoSync);$('cancelSyncBtn').addEventListener('click',()=>{cancelSync=true});
+$('saveSrtBtn').addEventListener('click',async()=>{if(!CUES.length)return;const r=await saveFile(new Blob([cuesToSrt()],{type:'text/plain'}),'subtitles.srt.txt');if(r==='saved')toast('Saved. Rename it to .srt before uploading to YouTube.',6000)});
+function buildSwatches(){const b=$('sws');b.innerHTML='';HILITE.forEach(c=>{const s=document.createElement('button');s.className='sw'+(c===LOOK.hl?' on':'');s.style.background=c;s.type='button';s.title=c;s.onclick=()=>{LOOK.hl=c;saveLook();buildSwatches()};b.appendChild(s)})}
+[['res','res'],['tsize','tsize'],['qual','qual'],['expMode','expMode']].forEach(([id,k])=>{$(id).value=LOOK[k];$(id).addEventListener('change',()=>{LOOK[k]=$(id).value;saveLook();if(k==='res'){RES=LOOK.res.split('x').map(Number);ENV.clear();setPreviewSize()}updSizeEst();try{updSpeed()}catch(_){}})});
+[['optEmoji','emoji'],['optCards','cards'],['optCorner','corner'],['optSubs','subs']].forEach(([id,k])=>{$(id).checked=!!LOOK[k];$(id).addEventListener('change',()=>{LOOK[k]=$(id).checked;saveLook()})});
+$('remixBtn').addEventListener('click',()=>{SEED=(Math.random()*1e9)>>>0;store.set('seed',SEED);ENV.clear();$('seedLbl').textContent='#'+(SEED%10000);buildEmojiEvents()});
+function bitrateFor(W,H,fps){return Math.round(W*H*fps*(LOOK.qual==='small'?.026:.042))}
+function updSizeEst(){const[W,H]=RES;const fps=LOOK.qual==='small'?24:30;const br=bitrateFor(W,H,fps)+160000;const mb=br*DURATION/8/1048576;
+  $('sizeEst').innerHTML=`About <b>${mb>1024?(mb/1024).toFixed(1)+' GB':Math.max(1,Math.round(mb))+' MB'}</b> for ${fmt(DURATION)}${SRC?'':' (load your audio for the real length)'}. Rendering usually runs several times faster than real time on a decent computer.`}
+
+/* ================= export (WebCodecs → MP4, streamed in pieces so 4-hour videos fit) ================= */
+let downloads=null;try{if(window.claude&&typeof window.claude.use==='function')window.claude.use('downloads').then(d=>{downloads=d}).catch(()=>{})}catch(_){}
+async function saveFile(blob,name){
+  if(!downloads){try{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},120000);return'saved'}catch(e){toast('Couldn\'t save the file here.',6000);return'fail'}}
+  try{await downloads.save({filename:name,data:blob});return'saved'}catch(e){const c=e&&e.code;if(c==='declined')return'declined';if(c==='too_large'){toast('File too large to save here. Try "Smaller file", 1280×720, or one file per chapter.',7000);return'fail'}toast('Couldn\'t save: '+(e&&e.message||c||e),6000);return'fail'}}
+class PartStore{constructor(){this.segs=[];this.end=0}
+  write(data,pos){const len=data.byteLength,e=pos+len,b=new Blob([data.slice?data.slice():data]);
+    if(pos===this.end){this.segs.push({p:pos,e,b});this.end=e;return}
+    const out=[];for(const s of this.segs){if(s.e<=pos||s.p>=e){out.push(s);continue}if(s.p<pos)out.push({p:s.p,e:pos,b:s.b.slice(0,pos-s.p)});if(s.e>e)out.push({p:e,e:s.e,b:s.b.slice(e-s.p)})}
+    out.push({p:pos,e,b});out.sort((x,y)=>x.p-y.p);this.segs=out;this.end=Math.max(this.end,e)}
+  blob(){const parts=[];let cur=0;for(const s of this.segs){if(s.p>cur)parts.push(new Uint8Array(s.p-cur));parts.push(s.b);cur=s.e}return new Blob(parts,{type:'video/mp4'})}}
+async function pickVideoCodec(W,H,fps){const br=bitrateFor(W,H,fps);
+  const tries=[['avc','avc1.640033'],['avc','avc1.640028'],['avc','avc1.4d0033'],['avc','avc1.42003e'],['vp9','vp09.00.41.08'],['av1','av01.0.08M.08']];
+  for(const[k,c]of tries){for(const hw of['no-preference','prefer-software']){try{const cfg={codec:c,width:W,height:H,bitrate:br,framerate:fps,bitrateMode:'variable',hardwareAcceleration:hw};if(k==='avc')cfg.avc={format:'avc'};const r=await VideoEncoder.isConfigSupported(cfg);if(r.supported)return{kind:k,cfg}}catch(_){}}}
+  return null}
+async function pickAudioCodec(){for(const[k,c]of[['aac','mp4a.40.2'],['opus','opus']]){try{const cfg={codec:c,sampleRate:48000,numberOfChannels:2,bitrate:160000};const r=await AudioEncoder.isConfigSupported(cfg);if(r.supported)return{kind:k,cfg}}catch(_){}}return null}
+let cancelExport=false,exporting=false;
+async function audioBlock(t0,t1,nFrames){const sr=48000;if(!SRC||t0>=SRC.duration)return null;const pad=.12,a=Math.max(0,t0-pad),b=Math.min(SRC.duration,t1+pad);
+  const seg=await SRC.getSegment(a,b);const oc=new OfflineAudioContext(2,nFrames,sr);const s=oc.createBufferSource();s.buffer=seg;s.connect(oc.destination);s.start(0,t0-a);return await oc.startRendering()}
+async function renderRange(t0,t1,name,label){
+  const[W,H]=RES,fps=LOOK.qual==='small'?24:30;const dur=Math.max(.1,t1-t0),N=Math.ceil(dur*fps);
+  const vc=await pickVideoCodec(W,H,fps);if(!vc){toast('This browser can\'t encode video. Try Chrome or Edge on a computer.',6000);return'fail'}
+  const ac=SRC?await pickAudioCodec():null;if(SRC&&!ac)toast('This browser can\'t encode audio, so the video will be silent.',6000);
+  $('encInfo').textContent=`${W}×${H} · ${fps} fps · ${vc.kind.toUpperCase()}${ac?' + '+ac.kind.toUpperCase():''}`;
+  const store_=new PartStore();
+  const muxer=new Mp4Muxer.Muxer({target:new Mp4Muxer.StreamTarget({onData:(d,p)=>store_.write(d,p),chunked:true,chunkSize:1<<23}),video:{codec:vc.kind,width:W,height:H,frameRate:fps},audio:ac?{codec:ac.kind,numberOfChannels:2,sampleRate:48000}:undefined,fastStart:false,firstTimestampBehavior:'offset'});
+  let encErr=null;const venc=new VideoEncoder({output:(c,m)=>muxer.addVideoChunk(c,m),error:e=>encErr=e});venc.configure(vc.cfg);
+  let aenc=null;if(ac){aenc=new AudioEncoder({output:(c,m)=>muxer.addAudioChunk(c,m),error:e=>encErr=e});aenc.configure(ac.cfg)}
+  const oc=typeof OffscreenCanvas!=='undefined'?new OffscreenCanvas(W,H):Object.assign(document.createElement('canvas'),{width:W,height:H});const octx=oc.getContext('2d');
+  const BLOCK=10,started=performance.now();const skSlot={};let aDone=0,result='fail';
+  try{for(let f=0;f<N;f++){
+      if(cancelExport||encErr)break;
+      if(aenc&&f%(BLOCK*fps)===0){const bs=f/fps,be=Math.min(dur,bs+BLOCK);const target=Math.round(be*48000),n=target-aDone;
+        if(n>0){const buf=await audioBlock(t0+bs,t0+be,n);const data=new Float32Array(n*2);if(buf){data.set(buf.getChannelData(0).subarray(0,n),0);data.set((buf.numberOfChannels>1?buf.getChannelData(1):buf.getChannelData(0)).subarray(0,n),n)}
+          for(let s=0;s<n;s+=4800){const m=Math.min(4800,n-s),chunk=new Float32Array(m*2);chunk.set(data.subarray(s,s+m),0);chunk.set(data.subarray(n+s,n+s+m),m);
+            const ad=new AudioData({format:'f32-planar',sampleRate:48000,numberOfFrames:m,numberOfChannels:2,timestamp:Math.round((aDone+s)/48000*1e6),data:chunk});aenc.encode(ad);ad.close()}
+          aDone=target}}
+      const t=t0+f/fps;drawFrame(octx,t,W,H,skSlot);
+      const vf=new VideoFrame(oc,{timestamp:Math.round(f*1e6/fps),duration:Math.round(1e6/fps)});venc.encode(vf,{keyFrame:f%(fps*2)===0});vf.close();
+      while(venc.encodeQueueSize>8)await new Promise(r=>setTimeout(r,1));
+      if(f%20===0){const p=f/N,el=(performance.now()-started)/1000,eta=p>.005?el/p-el:0;$('progBar').style.width=(p*100).toFixed(2)+'%';
+        $('expMsg').textContent=`${label?label+' · ':''}Rendering ${fmt(f/fps)} / ${fmt(dur)}${p>.005?` · ${(f/fps/el).toFixed(1)}× real time · about ${fmt(eta)} left`:''}`;await new Promise(r=>setTimeout(r,0))}}
+    if(encErr)throw encErr;
+    if(cancelExport){$('expMsg').textContent='Export cancelled.';return'cancel'}
+    $('expMsg').textContent='Finishing file…';await venc.flush();if(aenc)await aenc.flush();muxer.finalize();
+    const blob=store_.blob();$('progBar').style.width='100%';
+    const r=await saveFile(blob,name);result=r;
+    $('expMsg').textContent=r==='saved'?`Done: ${name} (${blob.size>1<<30?(blob.size/(1<<30)).toFixed(2)+' GB':(blob.size/1048576).toFixed(1)+' MB'})`:r==='declined'?'Save cancelled. Click Export to try again.':'Couldn\'t save the file.';
+  }catch(e){console.error(e);$('expMsg').textContent='Export failed: '+(e&&e.message?e.message:e)}
+  finally{try{venc.state!=='closed'&&venc.close()}catch(_){}try{aenc&&aenc.state!=='closed'&&aenc.close()}catch(_){}}
+  return result}
+const safeName=s=>s.replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,' ').trim().slice(0,80)||'video';
+$('exportBtn').addEventListener('click',async()=>{if(exporting)return;if(!('VideoEncoder' in window)){toast('Export needs Chrome or Edge on a computer.',6000);return}
+  if(!STORY.units.length){toast('Paste your story first');return}
+  if(SRC&&!RAW){toast('Sync first: click ✨ Auto-sync (or load the .srt), so subtitles match the voice.',6000);return}
+  exporting=true;cancelExport=false;playing=false;stopAudio();$('playBtn').textContent='▶ Play';$('exportBtn').disabled=true;$('cancelBtn').style.display='';
+  try{await loadFonts();await document.fonts.ready}catch(_){}PAGES.forEach(p=>p._lay=null);
+  const base=safeName($('vTitle').value||STORY.chapters.find(c=>!c.intro)?.title||'What if');
+  try{if(LOOK.expMode==='chapters'&&STORY.chapters.length>1){let done=0;for(let i=0;i<STORY.chapters.length;i++){const c=STORY.chapters[i];const r=await renderRange(CH_START[i],chapEnd(i),`${String(i+1).padStart(2,'0')} - ${safeName(c.intro?'Intro':c.title)}.mp4`,`File ${i+1} of ${STORY.chapters.length}`);if(r!=='saved')break;done++}
+      if(done===STORY.chapters.length)$('expMsg').textContent=`Done: saved ${done} files.`}
+    else await renderRange(0,DURATION,base+'.mp4','')}
+  finally{exporting=false;$('exportBtn').disabled=false;$('cancelBtn').style.display='none'}});
+$('cancelBtn').addEventListener('click',()=>{cancelExport=true});
+
+/* --- sketch UI --- */
+function renderThumbs(){const box=$('thumbs');box.innerHTML='';DRAWINGS.forEach(D=>{const b=document.createElement('button');b.type='button';b.className='th'+(SEL.includes(D.id)?' on':'');const r=rateDrawing(D);b.title=D.name+' · '+r.t;b.appendChild(D.thumb);
+    const n=SEL.indexOf(D.id);if(n>=0&&SEL.length>1){const bd=document.createElement('span');bd.className='bd';bd.textContent=n+1;b.appendChild(bd)}
+    const dot=document.createElement('span');dot.className='dot';dot.style.background=r.c;b.appendChild(dot);
+    if(!D.builtin){const x=document.createElement('span');x.className='rm';x.textContent='×';x.title='Remove';x.onclick=ev=>{ev.stopPropagation();DRAWINGS=DRAWINGS.filter(d=>d!==D);SEL=SEL.filter(i=>i!==D.id);if(!SEL.length&&DRAWINGS.length)SEL=[DRAWINGS[0].id];idbDel(D.id);saveSel();renderThumbs()};b.appendChild(x)}
+    b.onclick=()=>{if(SEL.includes(D.id)){if(SEL.length>1)SEL=SEL.filter(i=>i!==D.id)}else SEL.push(D.id);saveSel();renderThumbs()};box.appendChild(b)});
+  const up=document.createElement('button');up.type='button';up.className='th add';up.innerHTML='<b>+</b><span>Upload</span>';up.onclick=()=>$('imgFile').click();box.appendChild(up);
+  const one=$('skOnly');if(one)one.style.display=SEL.length>1?'':'none';renderChapters();updSpeed()}
+function updSpeed(){const el=$('skSpeed');if(!el)return;if(LOOK.bg!=='sketch'){el.innerHTML='';return}const sel=SEL.map(id=>DRAWINGS.find(d=>d.id===id)).filter(Boolean);if(!sel.length){el.innerHTML='';return}
+  const rows=sel.map((D,i)=>{const v=pencilSpeed(D,i),seg=segLenFor(i);const ok=v>=6?['var(--ok)','good']:v>=2.5?['var(--warn)','slow but visible']:['var(--bad)','very slow: add more drawings, pick a more detailed image, or use one per chapter'];return`<div>${sel.length>1?`<b>${i+1}.</b> `:''}${esc(D.name)}: drawn over <b>${fmt(seg)}</b> · pencil moves about <b style="color:${ok[0]}">${v<10?v.toFixed(1):Math.round(v)} px/sec</b> (${ok[1]})</div>`});
+  el.innerHTML=rows.slice(0,8).join('')+(rows.length>8?`<div>…and ${rows.length-8} more</div>`:'')}
+function saveSel(){store.set('skSel',SEL)}
+async function addUploads(files,quiet){let added=0;for(const f of files){if(!/^image\//.test(f.type)&&!/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name))continue;$('skMsg').textContent='Turning '+(f.name||'image')+' into a sketch…';await new Promise(r=>setTimeout(r,30));
+    try{const D=await traceUpload(f,parseInt(LOOK.skDetail)||1,f._id);DRAWINGS.push(D);added++;if(!quiet){if(SEL.length===1&&SEL[0][0]==='b')SEL=[D.id];else if(!SEL.includes(D.id))SEL.push(D.id);idbPut(D.id,f)}
+      const r=rateDrawing(D);if(!quiet)$('skMsg').innerHTML=`<span style="color:${r.c}">● ${esc(D.name)}: ${r.t}.</span> ${D.strokes.length.toLocaleString()} lines, ${D.hatch.length.toLocaleString()} shading strokes. Press <b>👁 Finished drawing</b> to check it.`}
+    catch(e){console.error(e);$('skMsg').textContent='Could not use '+(f.name||'that image')+': '+(e.message||e)}}
+  if(quiet&&added)$('skMsg').textContent=`Loaded ${added} saved character${added>1?'s':''} from this browser.`;
+  SEL=SEL.filter(id=>DRAWINGS.find(d=>d.id===id));if(!SEL.length&&DRAWINGS.length)SEL=[DRAWINGS[0].id];saveSel();renderThumbs()}
+/* remember uploads in this browser (IndexedDB) */
+let idbP=null;function idb(){if(idbP)return idbP;idbP=new Promise((res)=>{try{const r=indexedDB.open('wifvm',1);r.onupgradeneeded=()=>r.result.createObjectStore('imgs',{keyPath:'id'});r.onsuccess=()=>res(r.result);r.onerror=()=>res(null)}catch(_){res(null)}});return idbP}
+async function idbPut(id,f){try{const db=await idb();if(!db)return;db.transaction('imgs','readwrite').objectStore('imgs').put({id,name:f.name||'image',type:f.type,blob:f,at:Date.now()})}catch(_){}}
+async function idbDel(id){try{const db=await idb();if(!db)return;db.transaction('imgs','readwrite').objectStore('imgs').delete(id)}catch(_){}}
+async function idbAll(){try{const db=await idb();if(!db)return[];return await new Promise(res=>{const q=db.transaction('imgs').objectStore('imgs').getAll();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])})}catch(_){return[]}}
+async function retraceAll(){const ups=DRAWINGS.filter(d=>!d.builtin);if(!ups.length)return;for(const D of ups){$('skMsg').textContent='Re-drawing '+D.name+' at the new detail…';await new Promise(r=>setTimeout(r,20));try{const N=await traceUpload(D.file,parseInt(LOOK.skDetail)||1,D.id);DRAWINGS[DRAWINGS.indexOf(D)]=N}catch(e){console.error(e)}}
+  Object.keys(SK_SLOT_PREV).forEach(k=>delete SK_SLOT_PREV[k]);$('skMsg').textContent='Updated '+ups.length+' character'+(ups.length>1?'s':'')+' to the new detail.';renderThumbs()}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+$('imgFile').addEventListener('change',()=>{const fs=[...$('imgFile').files];$('imgFile').value='';addUploads(fs)});
+$('thumbs').addEventListener('dragover',e=>e.preventDefault());$('thumbs').addEventListener('drop',e=>{e.preventDefault();addUploads([...e.dataTransfer.files])});
+function syncBgUI(){updSpeed();$('sketchBox').style.display=LOOK.bg==='sketch'?'':'none';$('skFinish').style.display=LOOK.bg==='sketch'?'':'none';PAGES.forEach(p=>p._lay=null);renderChapters()}
+[['bgMode','bg'],['skPace','skPace'],['skPaper','skPaper'],['skDetail','skDetail']].forEach(([id,k])=>{$(id).value=LOOK[k];$(id).addEventListener('change',()=>{LOOK[k]=$(id).value;saveLook();syncBgUI();renderThumbs();if(k==='skDetail')retraceAll()})});
+[['skColor','skColor'],['skPen','skPen'],['skCam','skCam']].forEach(([id,k])=>{$(id).checked=!!LOOK[k];$(id).addEventListener('change',()=>{LOOK[k]=$(id).checked;saveLook();updSpeed()})});
+$('skFinish').addEventListener('click',()=>{SK_FINISH=!SK_FINISH;$('skFinish').textContent=SK_FINISH?'↩ Back to timeline':'👁 Finished drawing'});
+(async()=>{for(let i=0;i<BUILTIN_SVGS.length;i++){try{DRAWINGS.push(await builtinDrawing(BUILTIN_SVGS[i],i))}catch(e){console.error(e)}}const saved=await idbAll();if(saved.length){const fs=saved.sort((a,b)=>a.at-b.at).map(r=>{const f=new File([r.blob],r.name,{type:r.type||r.blob.type});f._id=r.id;return f});await addUploads(fs,true)}
+  if(!SEL.some(id=>DRAWINGS.find(d=>d.id===id)))SEL=['b0'];renderThumbs()})();
+document.addEventListener('paste',e=>{const fs=[...(e.clipboardData&&e.clipboardData.files||[])].filter(f=>/^image\//.test(f.type));if(!fs.length)return;e.preventDefault();if(LOOK.bg!=='sketch'){LOOK.bg='sketch';$('bgMode').value='sketch';saveLook();syncBgUI()}addUploads(fs.map((f,i)=>new File([f],f.name&&f.name!=='image.png'?f.name:`pasted-${Date.now()%100000}-${i}.png`,{type:f.type})))});
+$('skOnly').addEventListener('click',()=>{const cur=sketchAt(T);if(cur){SEL=[cur.D.id];saveSel();renderThumbs()}});
+
+/* ================= init ================= */
+const DEMO=`What if the Moon disappeared?
+
+Tonight, look up at the sky and imagine the Moon is simply gone. No explosion, no warning. One second it is there, and the next second there is only darkness and stars.
+
+The first thing you would notice is the night. Without moonlight, nights would be much darker, and some animals that hunt by the light of the Moon would be totally confused.
+
+But the real change would happen in the ocean. The Moon's gravity pulls on the water and creates the tides. Without it, the waves on the beach would become tiny, and many sea creatures would lose their homes.
+
+What if the Sun went out for one week?
+
+Here is the strange part: for the first eight minutes, nobody on Earth would even know. Light takes about eight minutes to travel from the Sun to us.
+
+After that, the sky would turn black. Temperatures would start falling fast, and by the end of the week, oceans would begin to freeze at the surface and snow would cover most cities.
+
+People would crowd around fire, heaters and any source of electricity they could find. And plants, without sunlight, would stop making oxygen.`;
+{const it=store.get('intro',null);if(it){$('introMode').value=it.mode||'none';$('introText').value=it.text||'';$('introLen').value=it.len||'30'}}syncIntroUI();
+$('story').value=store.get('story','')||DEMO;$('headMode').value=store.get('headMode','auto');$('vTitle').value=store.get('vTitle','');
+$('seedLbl').textContent='#'+(SEED%10000);buildSwatches();setPreviewSize();refreshStory();syncBgUI();
+const loadFonts=()=>Promise.all(['700','800','900'].map(w=>document.fonts&&document.fonts.load(`${w} 40px Inter`).catch(()=>{})));loadFonts().then(()=>{PAGES.forEach(p=>p._lay=null)});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{PAGES.forEach(p=>p._lay=null)});
+requestAnimationFrame(tick);
+window.__t={drawAt:(t)=>{T=t;drawPreview()},state:()=>({CUES,PAGES,CH_START,DURATION,EVENTS,STORY}),setSrc:s=>{SRC=s},introOff,setLook:o=>{Object.assign(LOOK,o);if(o.res){RES=o.res.split('x').map(Number);ENV.clear();setPreviewSize()}},renderRange,autoSync,makeSource,finalizeCues,refreshStory,PartStore,frameTime:(t,n)=>{const[W,H]=RES;const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');const s=performance.now();for(let i=0;i<n;i++)drawFrame(x,t+i/30,W,H);return(performance.now()-s)/n},setDownloads:d=>{downloads=d},addUploads,drawings:()=>DRAWINGS,setSel:a=>{SEL=a;renderThumbs()},finish:v=>{SK_FINISH=v}};
+})();
+
+</script>
+</body>
+</html>
