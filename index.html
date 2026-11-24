@@ -2978,7 +2978,8 @@ function stripPreamble(t){const ls=t.split('\n');const si=ls.slice(0,8).findInde
   const sumEnd=ni>0?ni:ls.length;const summary=[];let prose=false,start=-1;
   for(let i=si+1;i<sumEnd;i++){const l=ls[i].trim();if(!l)continue;if(/^Chapter\s+\d+\b/i.test(l)){start=i;break}if(!prose&&(SENDER_RE.test(l)||ROLE_RE.test(l)))summary.push(l.replace(ROLE_RE,''));else prose=true;if(ni<0&&prose&&isChatLine(l)){start=i;break}}
   if(ni>0)for(let i=ni+1;i<ls.length;i++){if(isChatLine(ls[i].trim())){start=i;break}}
-  meta.summary=summary.join('\n');STORY_META=meta;return start>0?ls.slice(start).join('\n'):t}
+  meta.summary=summary.join('\n');STORY_META=meta;STORY_PRE=start>0?ls.slice(0,start).join('\n'):'';return start>0?ls.slice(start).join('\n'):t}
+let STORY_PRE='';
 /* an author's username cribsheet inside a chapter: drop it and treat it as a chapter break */
 function cutCribsheets(t){const ls=t.split('\n');const codes=ls.map((l,i)=>CODE_LINE.test(l.trim())?i:-1).filter(i=>i>=0);if(codes.length<4)return t;
   let a=codes[0],b=codes[codes.length-1];const nonChat=i=>{const l=ls[i].trim();return !l||!isChatLine(l)||CODE_LINE.test(l)};
@@ -3416,7 +3417,7 @@ let SCRIPT_EDITS={};const chIdx=()=>CHAPTERS.length>1?(parseInt($('chapSel').val
 $('script').addEventListener('input',()=>{if(CHAPTERS.length>1)SCRIPT_EDITS[chIdx()]=$('script').value;clearTimeout(scriptTimer);scriptTimer=setTimeout(onScript,350)});
 let chapTimer=null;$('story').addEventListener('input',()=>{SCRIPT_EDITS={};updateWordCount();clearTimeout(chapTimer);chapTimer=setTimeout(()=>{refreshChapters();saveDraft()},500)});
 let CHAPTERS=[],ALLCOUNTS=null,STORY_IS_CHAT=false;
-function splitChapters(text){STORY_META=null;let t=text.replace(/\r/g,'');CODEMAP=castCodes(t);t=cutCribsheets(stripPreamble(t));let parts=t.split(/\bChapter Text\b/),heads=parts.map(()=>'');if(parts.length<2){const sp=t.split(/^\s*(Chapter\s+\d+\s*(?::[^\n]*)?)\s*$/m);parts=[sp[0]];heads=[''];for(let i=1;i<sp.length;i+=2){parts.push(sp[i+1]||'');heads.push(sp[i].trim())}}
+function splitChapters(text){STORY_META=null;STORY_PRE='';let t=text.replace(/\r/g,'');CODEMAP=castCodes(t);t=cutCribsheets(stripPreamble(t));let parts=t.split(/\bChapter Text\b/),heads=parts.map(()=>'');if(parts.length<2){const sp=t.split(/^\s*(Chapter\s+\d+\s*(?::[^\n]*)?)\s*$/m);parts=[sp[0]];heads=[''];for(let i=1;i<sp.length;i+=2){parts.push(sp[i+1]||'');heads.push(sp[i].trim())}}
   const ok=parts.map((s,i)=>[s.trim(),heads[i]]).filter(([s])=>s.replace(/\s+/g,'').length>30);const kept=dedupeChapters(ok.map(x=>x[0]));CHAP_HEADS=kept.map(k=>(ok.find(x=>x[0]===k)||['',''])[1]);return kept}
 let CHAP_HEADS=[];
 let LAST_DUP_MSG='';
@@ -3553,7 +3554,10 @@ async function autoSync(){
   syncBusy=true;cancelSync=false;const btn=$('autoSyncBtn');btn.disabled=true;const fi=$('fullInfo');fi.style.display='';fi.style.color='var(--fg)';
   try{
     fi.innerHTML='<b>Listening for pauses in your audio…</b> 0%';
-    const units=(introInAudio()&&$('introMsg').value.trim()?storyUnits($('introMsg').value):[]).concat(storyUnits(text));
+    // what the narrator reads, in order: spoken intro (if any), the story's header block (title, author, summary), then the chapters
+    const iu=introInAudio()&&$('introMsg').value.trim()?storyUnits($('introMsg').value):[];const iuSet=new Set(iu.map(u=>u.replace(/\s+/g,' ').trim()));
+    const pre=STORY_PRE?storyUnits(STORY_PRE).filter(u=>!/^(Summary|Notes):?$/i.test(u.trim())&&!iuSet.has(u.replace(/\s+/g,' ').trim())):[];
+    const units=iu.concat(pre).concat(storyUnits(text));
     const pauses=await detectPauses(p=>{fi.innerHTML=`<b>Listening for pauses in your audio…</b> ${Math.round(p*100)}%`},units.length);
     fi.innerHTML='<b>Matching every line of the story to the audio…</b>';await new Promise(r=>setTimeout(r,30));
     {const r=pauses.length/units.length;SYNC_NOTE=r<.6?`<br><span style="color:var(--warn)"><b>⚠ Only ${pauses.length.toLocaleString()} clear pauses for ${units.length.toLocaleString()} lines.</b> Your audio barely pauses between lines (or has music under it), so timing may be rough. Best fix: make the TTS leave a short pause after every line, and keep music off this file (add it in your editor afterwards).</span>`:`<br><span class="muted">Heard ${pauses.length.toLocaleString()} pauses for ${units.length.toLocaleString()} lines.</span>`}
