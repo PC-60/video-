@@ -2916,19 +2916,69 @@ function parseScript(src){
   return msgs;
 }
 /* chat-format stories (chatfics): "[Chat]", "User: text", system lines */
-function looksLikeChat(text){const ls=text.split('\n').map(s=>s.trim()).filter(Boolean);if(ls.length<4)return false;
+/* ---------- AO3 chatfic exports in memo/board style (e.g. "[MOD] DD: hi", "ash [UT] joined [Memo].", "UT - ultimateTrainer" cast lists) ---------- */
+let CODEMAP={};
+const CODE_LINE=/^([A-Z]{2,3}\d?)\s+[-–]\s+([a-z][A-Za-z0-9]{3,30})\s*$/;
+function castCodes(text){const m={};let n=0;text.replace(/\r/g,'').split('\n').forEach(l=>{const x=l.trim().match(CODE_LINE);if(x){m[x[1]]=x[2];n++}});return n>=4?m:{}}
+const ROLE_RE=/^\[(?:ADMIN|MOD|OWNER|OP|BOT|VIP|HOST|STAFF)\]\s+(?=[^\s:]{1,32}:)/i;
+const MEMO_SYS=/^((?:[a-z]+\s+)?[A-Za-z][\w.'’-]{1,31})\s+\[[A-Z0-9]{1,4}\]\s+(.+)$/;
+const titleCase=s=>s.replace(/\b([A-Z])([A-Z’']+)\b/g,(m,a,b)=>a+b.toLowerCase());
+const isChatLine=l=>SENDER_RE.test(l)||ROLE_RE.test(l)||MEMO_SYS.test(l)||/^\[[^\]]{2,60}\]$/.test(l);
+function prepChatfic(text){
+  const out=[];let chat=null,prevChat=null,flash=false,banner=false;
+  const setChat=c=>{c=c.trim();if(!c||c===chat)return;out.push('['+c+']');chat=c};
+  for(const r of text.replace(/\r/g,'').split('\n')){let l=r.trim();
+    if(!l){out.push('');continue}
+    if(/^[_\-–—=~*•·]{6,}$/.test(l)){if(flash&&prevChat){flash=false;const p=prevChat;chat=null;setChat(p)}continue}
+    if(banner&&/^>/.test(l))continue;banner=false;
+    if(/^\[[^\]]{2,60}\]$/.test(l)&&!/^\[\d/.test(l)&&!/^\[(ADMIN|MOD)\]$/i.test(l)){
+      if(/\b(ago|earlier|later|before|after|flashback|years?|months?|weeks?|days?|hours?)\b/i.test(l)){if(!flash)prevChat=chat;flash=true}
+      chat=l.slice(1,-1);out.push(l);continue}
+    l=l.replace(ROLE_RE,'');
+    const cm=l.match(/^([A-Z]{2,3}\d?):(\s.*|)$/);if(cm&&CODEMAP[cm[1]])l=CODEMAP[cm[1]]+':'+cm[2];
+    const sm=!SENDER_RE.test(l)&&l.match(MEMO_SYS);
+    if(sm){const who=sm[1].split(/\s+/).pop();let rest=sm[2];
+      const j=rest.match(/^(?:joined|responded to|entered|opened|re-?joined)\s+\[([^\]]+)\]/i)||rest.match(/^(?:joined|created(?: new)?) memo\s+(.+?)\s+on board\b/i);
+      const pm=rest.match(/^began pestering\s+(\S+)/i);
+      if(j&&!flash){setChat(titleCase(j[1]));banner=true}
+      else if(pm&&!flash){setChat(`${who} & ${pm[1]}`)}
+      rest=rest.replace(/\s*\[[A-Z0-9]{1,4}\]/g,'').replace(/\[([^\]]+)\]/g,'$1').replace(/memo\s+([A-Z][A-Z’' ]+?)\s+on board\s+([A-Z][A-Z’' ]+)/,(m,a,b)=>`memo ${titleCase(a)} on board ${titleCase(b)}`);
+      out.push(`${who} ${rest}`);continue}
+    out.push(l)}
+  return out.join('\n')}
+/* title / author / summary / notes block at the top of an AO3 download */
+let STORY_META=null;
+function stripPreamble(t){const ls=t.split('\n');const si=ls.slice(0,8).findIndex(l=>/^\s*Summary:\s*$/.test(l));if(si<0)return t;
+  const meta={title:(ls[0]||'').trim(),author:si>=2?ls[si-1].trim():''};let ni=ls.findIndex((l,i)=>i>si&&/^\s*Notes:\s*$/.test(l));
+  const sumEnd=ni>0?ni:ls.length;const summary=[];let prose=false,start=-1;
+  for(let i=si+1;i<sumEnd;i++){const l=ls[i].trim();if(!l)continue;if(!prose&&(SENDER_RE.test(l)||ROLE_RE.test(l)))summary.push(l.replace(ROLE_RE,''));else prose=true;if(ni<0&&prose&&isChatLine(l)){start=i;break}}
+  if(ni>0)for(let i=ni+1;i<ls.length;i++){if(isChatLine(ls[i].trim())){start=i;break}}
+  meta.summary=summary.join('\n');STORY_META=meta;return start>0?ls.slice(start).join('\n'):t}
+/* an author's username cribsheet inside a chapter: drop it and treat it as a chapter break */
+function cutCribsheets(t){const ls=t.split('\n');const codes=ls.map((l,i)=>CODE_LINE.test(l.trim())?i:-1).filter(i=>i>=0);if(codes.length<4)return t;
+  let a=codes[0],b=codes[codes.length-1];const nonChat=i=>{const l=ls[i].trim();return !l||!isChatLine(l)||CODE_LINE.test(l)};
+  while(a>0&&nonChat(a-1))a--;while(b+1<ls.length&&nonChat(b+1))b++;
+  return ls.slice(0,a).join('\n')+'\nChapter Text\n'+ls.slice(b+1).join('\n')}
+/* the same chapter pasted twice (or a chapter's tail repeated): keep the first copy */
+let CHAP_DUPS=[];
+function dedupeChapters(parts){const keyLines=p=>p.split('\n').map(x=>x.trim().replace(/\s+/g,' ')).filter(x=>x&&!/^[_\-–—=~*]{6,}$/.test(x));
+  const kept=[],sets=[];CHAP_DUPS=[];
+  parts.forEach((p,i)=>{const L=keyLines(p);if(L.length>=8){for(const S of sets){let hit=0;for(const x of L)if(S.has(x))hit++;if(hit/L.length>=.92){CHAP_DUPS.push({n:i+1,lines:L.length,first:L[0]});return}}}
+    kept.push(p);sets.push(new Set(L))});return kept}
+
+function looksLikeChat(text){text=prepChatfic(text);const ls=text.split('\n').map(s=>s.trim()).filter(Boolean);if(ls.length<4)return false;
   const c=ls.filter(l=>/^[^\s:“"]{1,32}:/.test(l)||/^\[[^\]]{2,60}\]$/.test(l)).length;return c/ls.length>0.45}
-const SYSRE=/^(\S+)\s+(?:has|have|had|was|is|forcibly|fled|left|joined|entered|raided|banned|kicked|removed|added|created|changed|renamed|pinned|muted|unmuted|re-entered|returned|logged|went|came|background|deleted|silenced)\b/i;
+const SYSRE=/^(\S+)\s+(?:has|have|had|was|is|forcibly|fled|left|joined|entered|raided|banned|kicked|removed|added|created|changed|renamed|pinned|muted|unmuted|re-entered|returned|logged|went|came|background|deleted|silenced|responded|uploaded|began|stopped|assigned|gave|granted|revoked|promoted|demoted|started|ended|sent|unbanned|cleared|locked|unlocked|invited|ceased|opened|closed)\b/i;
 function lev(a,b){const m=a.length,n=b.length;if(Math.abs(m-n)>3)return 9;let p=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
 const SENDER_RE=/^([^\s:“"”‘’]{2,32}):\s*(.*)$/;
-function senderCounts(text){const c={};text.split('\n').forEach(l=>{const m=l.trim().match(SENDER_RE);if(m&&!/^https?$/i.test(m[1]))c[m[1]]=(c[m[1]]||0)+1});return c}
+function senderCounts(text){text=prepChatfic(text);const c={};text.split('\n').forEach(l=>{const m=l.trim().match(SENDER_RE);if(m&&!/^https?$/i.test(m[1]))c[m[1]]=(c[m[1]]||0)+1});return c}
 function senderFixes(c){const names=Object.keys(c).sort((a,b)=>c[b]-c[a]);const map={};
   names.forEach(n=>{if(c[n]>3)return;const a=n.toLowerCase();for(const m of names){if(m===n)continue;const b=m.toLowerCase();
     if(c[m]>=3&&c[m]>c[n]&&a.length>=6&&lev(a,b)<=2){map[n]=m;break}
     if(c[m]>=c[n]&&b.length>a.length&&b.endsWith('.'+a)){map[n]=m;break}}});return map}
 const userLike=s=>/^[A-Za-z][\w.'’-]+$/.test(s)&&(/\./.test(s)||/[A-Z]/.test(s.slice(1)));
 function convertChat(text,keepNarr,allCounts){
-  const raw=text.replace(/\r/g,'').replace(/\bChapter Text\b/g,'').split('\n');
+  text=prepChatfic(text.replace(/\r/g,'').replace(/\bChapter Text\b/g,''));const raw=text.split('\n');
   const counts=allCounts||senderCounts(text);const fix=senderFixes(counts);
   const known=n=>(counts[n]||0)>=2||!!fix[n];const canon=n=>fix[n]||n;
   const blocks=raw.filter(l=>!l.trim()).length/Math.max(1,raw.length)>.25;
@@ -3339,14 +3389,19 @@ let SCRIPT_EDITS={};const chIdx=()=>CHAPTERS.length>1?(parseInt($('chapSel').val
 $('script').addEventListener('input',()=>{if(CHAPTERS.length>1)SCRIPT_EDITS[chIdx()]=$('script').value;clearTimeout(scriptTimer);scriptTimer=setTimeout(onScript,350)});
 let chapTimer=null;$('story').addEventListener('input',()=>{SCRIPT_EDITS={};updateWordCount();clearTimeout(chapTimer);chapTimer=setTimeout(()=>{refreshChapters();saveDraft()},500)});
 let CHAPTERS=[],ALLCOUNTS=null,STORY_IS_CHAT=false;
-function splitChapters(text){const t=text.replace(/\r/g,'');let parts=t.split(/\bChapter Text\b/);if(parts.length<2)parts=t.split(/^\s*Chapter\s+\d+\s*(?::[^\n]*)?\s*$/m);
-  return parts.map(s=>s.trim()).filter(s=>s.replace(/\s+/g,'').length>30)}
-function refreshChapters(){const s=$('story').value;CHAPTERS=splitChapters(s);STORY_IS_CHAT=looksLikeChat(s);ALLCOUNTS=STORY_IS_CHAT?senderCounts(s):null;if(CUES)setTimeout(()=>{detectFull();onScript()},0);
+function splitChapters(text){STORY_META=null;let t=text.replace(/\r/g,'');CODEMAP=castCodes(t);t=cutCribsheets(stripPreamble(t));let parts=t.split(/\bChapter Text\b/);if(parts.length<2)parts=t.split(/^\s*Chapter\s+\d+\s*(?::[^\n]*)?\s*$/m);
+  return dedupeChapters(parts.map(s=>s.trim()).filter(s=>s.replace(/\s+/g,'').length>30))}
+let LAST_DUP_MSG='';
+function applyMeta(){const m=STORY_META;if(!m||!m.title||$('storyName').value.trim()===m.title)return;
+  $('storyName').value=m.title;store.set('storyName',m.title);if(m.author){$('author').value=m.author;store.set('author',m.author)}
+  if(m.summary){$('introMsg').value=m.summary;store.set('introMsg',m.summary)}toast(`Filled in the title, author${m.summary?' and the intro chat (from the summary)':''} from the story header.`,6000)}
+function refreshChapters(){const s=$('story').value;CHAPTERS=splitChapters(s);applyMeta();
+  const dm=CHAP_DUPS.length?`Removed ${CHAP_DUPS.length} repeated chapter${CHAP_DUPS.length>1?'s':''}`:'';if(dm&&dm!==LAST_DUP_MSG)toast(dm+': they were copies of earlier chapters.',6000);LAST_DUP_MSG=dm;STORY_IS_CHAT=looksLikeChat(s);ALLCOUNTS=STORY_IS_CHAT?senderCounts(s):null;if(CUES)setTimeout(()=>{detectFull();onScript()},0);
   const sel=$('chapSel'),row=$('chapRow');if(CHAPTERS.length<2){row.style.display='none';updateWordCount();return}
   row.style.display='';const cur=clamp(parseInt($('chNum').value)||1,1,CHAPTERS.length);
   sel.innerHTML=CHAPTERS.map((c,i)=>{const w=(c.match(/\S+/g)||[]).length;const first=(c.split('\n').map(x=>x.trim()).find(x=>x&&!/^\[/.test(x))||'').slice(0,46);return`<option value="${i}">Chapter ${i+1} · ${w.toLocaleString()} words · ${esc(first)}…</option>`}).join('');
-  sel.value=String(cur-1);$('wordCount').textContent=`${CHAPTERS.length} chapters · ${(s.match(/\S+/g)||[]).length.toLocaleString()} words`}
-function chapterText(){return CHAPTERS.length>1?CHAPTERS[parseInt($('chapSel').value)||0]:$('story').value.trim()}
+  sel.value=String(cur-1);$('wordCount').textContent=`${CHAPTERS.length} chapters · ${(s.match(/\S+/g)||[]).length.toLocaleString()} words${CHAP_DUPS.length?` · ${CHAP_DUPS.length} repeats removed`:''}`}
+function chapterText(){return CHAPTERS.length>1?CHAPTERS[parseInt($('chapSel').value)||0]:(CHAPTERS[0]||$('story').value.trim())}
 function clearNarration(){CUES=null;AUTO_SRT=false;$('saveSrtBtn').style.display='none';audioBuf=null;audioDur=0;SRC=null;FULL=null;aud.pause();if(audioURL){URL.revokeObjectURL(audioURL);audioURL=null;aud.removeAttribute('src');aud.load()}
   $('srtDrop').classList.remove('done');$('audDrop').classList.remove('done');$('srtLabel').textContent='Drop or click: messages pop up exactly when your voice reads them';$('audLabel').textContent='Drop or click: MP3, M4A or WAV, any length. Baked into the video'}
 function pickChapter(i){i=clamp(i,0,CHAPTERS.length-1);$('chapSel').value=String(i);$('chNum').value=i+1;if(/^Chapter \d*$/.test($('chTitle').value)||!$('chTitle').value)$('chTitle').value='Chapter '+(i+1);
@@ -3474,7 +3529,7 @@ async function detectPauses(onProg){
   if(key)store.set(key,res);return res}
 async function autoSync(){
   if(syncBusy)return;if(!SRC){toast('Load your narration audio first');return}
-  const text=$('story').value.trim();if(!text){toast('Paste the story text first');return}
+  const text=(CHAPTERS.length?CHAPTERS.join('\n\n'):$('story').value).trim();if(!text){toast('Paste the story text first');return}
   syncBusy=true;cancelSync=false;const btn=$('autoSyncBtn');btn.disabled=true;const fi=$('fullInfo');fi.style.display='';fi.style.color='var(--fg)';
   try{
     fi.innerHTML='<b>Listening for pauses in your audio…</b> 0%';
@@ -3610,7 +3665,7 @@ else{$('story').value=DEMO;$('script').value=convert(DEMO,true);$('chTitle').val
 updateWordCount();refreshChapters();onScript();
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(relayout);
 requestAnimationFrame(tick);
-window.__test={core:CORE,cues:()=>CUES,full:()=>({FULL,CH_OFF,CH_LEN}),ws:()=>wordStream(),cm:i=>chapterMsgs(i).slice(0,8).map(m=>[m.kind,m.who||'',m.text]),convert,parseSRT,state:()=>({MSGS,duration,alignInfo,L}),setCues:c=>{CUES=c;onScript()},drawAt:t=>{T=t;performanceT=t;pctx.setTransform(pv.width/RES[0],0,0,pv.height/RES[1],0,0);drawFrame(pctx,t)}};
+window.__test={core:CORE,chapters:()=>CHAPTERS,dups:()=>CHAP_DUPS,meta:()=>STORY_META,prep:prepChatfic,cues:()=>CUES,full:()=>({FULL,CH_OFF,CH_LEN}),ws:()=>wordStream(),cm:i=>chapterMsgs(i).slice(0,8).map(m=>[m.kind,m.who||'',m.text]),convert,parseSRT,state:()=>({MSGS,duration,alignInfo,L}),setCues:c=>{CUES=c;onScript()},drawAt:t=>{T=t;performanceT=t;pctx.setTransform(pv.width/RES[0],0,0,pv.height/RES[1],0,0);drawFrame(pctx,t)}};
 };
 window.APPS.narr=()=>{"use strict";
 const $=id=>document.getElementById(id);
