@@ -2815,7 +2815,31 @@ async function toMp3(src,onProg,isCancelled){if(typeof lamejs==='undefined')thro
     for(let i=0;i<L.length;i+=1152*20){const l=L.subarray(i,i+1152*20),r=R?R.subarray(i,i+1152*20):null;const b=r?enc.encodeBuffer(l,r):enc.encodeBuffer(l);if(b.length)out.push(new Uint8Array(b))}
     const p=Math.min(1,(t+STEP)/D),el=(performance.now()-t0)/1000;onProg(p,p>.03?el/p-el:0);await new Promise(r=>setTimeout(r,0))}
   const fl=enc.flush();if(fl.length)out.push(new Uint8Array(fl));return new Blob(out,{type:'audio/mpeg'})}
-return{makeSource,bufFromPlanar,unitWeight,alignUnits,PartStore,pickVideoCodec,pickAudioCodec,saveFile,toMp3,inClaude:()=>!!downloads};
+
+/* pauses between lines, measured against THIS file's own levels (voice, background, gap length),
+   so narration with background music or very short gaps still syncs */
+async function detectPauses(src,nUnits,onProg,isCancelled){
+  const D=src.duration,CH=60,frame=.01,nF=Math.ceil(D/frame)+2,db=new Float32Array(nF).fill(-120);let k=0;
+  for(let t=0;t<D;t+=CH){if(isCancelled())throw new Error('cancelled');
+    const seg=await src.getSegment(t,Math.min(D,t+CH));const sr=seg.sampleRate,step=sr*frame;
+    const c0=seg.getChannelData(0),c1=seg.numberOfChannels>1?seg.getChannelData(1):null,m=Math.floor(seg.length/step),base=Math.round(t/frame);
+    for(let f=0;f<m;f++){const o=Math.round(f*step),e=Math.round((f+1)*step);let s=0;    // exact 10 ms slices: no drift at 22.05/44.1 kHz
+      if(c1){for(let j=o;j<e;j++){const v=(c0[j]+c1[j])*.5;s+=v*v}}else{for(let j=o;j<e;j++){const v=c0[j];s+=v*v}}
+      if(base+f<nF)db[base+f]=10*Math.log10(s/(e-o)+1e-12)}
+    k=Math.max(k,Math.min(nF,base+m));onProg(Math.min(1,(t+CH)/D));await new Promise(r=>setTimeout(r,0))}
+  const F=db.subarray(0,k);const srt=Float32Array.from(F.filter((_,i)=>i%7===0)).sort();const pc=q=>srt[Math.min(srt.length-1,Math.floor(srt.length*q))];
+  const floor=pc(.05),speech=pc(.9);
+  const find=(thr,minLen)=>{const res=[];let st=-1,above=0;const minF=Math.round(minLen/frame);
+    for(let i=0;i<=k;i++){const q=i<k&&F[i]<thr;if(q){if(st<0)st=i;above=0}else if(st>=0){if(i<k&&above<2){above++;continue}const e=i-above;if(e-st>=minF)res.push([+(st*frame).toFixed(3),+(e*frame).toFixed(3)]);st=-1;above=0}}
+    return res};
+  // gaps between lines sit near the quietest level of the file (silence, or the music bed under the voice).
+  // Collect every short gap there; the aligner keeps the longest ones as line breaks and ignores word gaps.
+  let best=null;
+  for(const lift of[5,8,11]){const thr=Math.min(Math.max(floor+lift,-60),speech-10);
+    for(const minLen of[.09,.12,.16,.2,.25]){const p=find(thr,minLen);if(p.length<=nUnits*4){best={p,thr,minLen};break}}
+    if(best&&best.p.length>=nUnits*.8)break}
+  const p=best?best.p:find(-35,.25);p.info={pauses:p.length,lines:nUnits,thr:best?Math.round(best.thr):-35,minLen:best?best.minLen:.25,floor:Math.round(floor),speech:Math.round(speech)};return p}
+return{makeSource,bufFromPlanar,unitWeight,alignUnits,detectPauses,PartStore,pickVideoCodec,pickAudioCodec,saveFile,toMp3,inClaude:()=>!!downloads};
 })();
 </script>
 <script>window.APPS={};
@@ -3378,7 +3402,7 @@ function onScript(){setChapterWindow();MSGS=parseScript($('script').value);compu
   $('msgCount').textContent=`${MSGS.length} lines · ${fmt(duration)}`;
   $('syncState').textContent=FULL?`whole-story narration · ${alignInfo}`:CUES?`synced to subtitles · ${alignInfo}`:(SRC?`audio only: ${alignInfo}`:'not synced: using reading speed');
   const fi=$('fullInfo');if(FULL){const i=(parseInt($('chapSel').value)||0)+1;const miss=FULL.n-FULL.found;
-    fi.style.display='';fi.style.color='var(--fg)';fi.innerHTML=`<b>One narration for the whole story:</b> found ${FULL.found} of ${FULL.n} chapters in it${miss?` (${miss} estimated)`:''}. Chapter ${i} plays <b>${fmt(CH_OFF)} – ${fmt(CH_OFF+CH_LEN)}</b> of your audio (${fmt(CH_LEN)}).`}
+    fi.style.display='';fi.style.color='var(--fg)';fi.innerHTML=`<b>One narration for the whole story:</b> found ${FULL.found} of ${FULL.n} chapters in it${miss?` (${miss} estimated)`:''}. Chapter ${i} plays <b>${fmt(CH_OFF)} – ${fmt(CH_OFF+CH_LEN)}</b> of your audio (${fmt(CH_LEN)}).${AUTO_SRT?SYNC_NOTE:''}`}
   else if(syncBusy){}
   else if(SRC&&!CUES){fi.style.display='';fi.style.color='var(--warn)';fi.innerHTML=`<b>⚠ Audio loaded but not synced yet.</b> The chat is still using reading speed. Click the glowing <b>✨ Sync chat to my audio</b> button (about a minute for 3 hours of audio), or load a matching .srt file.`}
   else if(SRC&&CUES&&CHAPTERS.length>1&&!FULL&&SRC.duration>1200){fi.style.display='';fi.style.color='var(--warn)';fi.innerHTML=`<b>⚠ Couldn't find the chapters in these subtitles.</b> Check that the .srt belongs to this audio and this story.`}
@@ -3520,26 +3544,20 @@ let syncBusy=false,cancelSync=false;
 function storyUnits(text){const out=[];text.replace(/\r/g,'').replace(/\bChapter Text\b/g,'').split('\n').forEach(l=>{l=l.trim();if(!l)return;
   if(l.length>140){let cur='';(l.match(/[^.!?…]+[.!?…]+[”"’)]*\s*|[^.!?…]+$/g)||[l]).forEach(p=>{if(cur.length+p.length>140&&cur){out.push(cur.trim());cur=p}else cur+=p});if(cur.trim())out.push(cur.trim())}else out.push(l)});return out}
 const{alignUnits}=CORE;
-async function detectPauses(onProg){
-  const key=SRC.key?'pauses:'+SRC.key:null;if(key){const c=store.get(key,null);if(c&&c.length)return c}
-  const D=SRC.duration,CH=60,thr=Math.pow(10,-35/20),frame=.01,res=[];let sil=null;
-  for(let t=0;t<D;t+=CH){if(cancelSync)throw new Error('cancelled');
-    const seg=await SRC.getSegment(t,Math.min(D,t+CH));const sr=seg.sampleRate,fl=Math.max(1,Math.round(sr*frame));
-    const c0=seg.getChannelData(0),c1=seg.numberOfChannels>1?seg.getChannelData(1):null,nF=Math.floor(seg.length/fl);
-    for(let f=0;f<nF;f++){let s=0;const o=f*fl,e=o+fl;if(c1){for(let k=o;k<e;k++){const v=(c0[k]+c1[k])*.5;s+=v*v}}else{for(let k=o;k<e;k++){const v=c0[k];s+=v*v}}
-      const tt=t+f*frame;if(Math.sqrt(s/fl)<thr){if(sil==null)sil=tt}else if(sil!=null){if(tt-sil>=.25)res.push([+sil.toFixed(3),+tt.toFixed(3)]);sil=null}}
-    onProg(Math.min(1,(t+CH)/D));await new Promise(r=>setTimeout(r,0))}
-  if(sil!=null&&D-sil>=.25)res.push([sil,D]);
-  if(key)store.set(key,res);return res}
+async function detectPauses(onProg,n){const key=SRC.key?'pauses2:'+SRC.key+':'+n:null;if(key){const c=store.get(key,null);if(c&&c.p&&c.p.length){const p=c.p;p.info=c.info;onProg(1);return p}}
+  const p=await CORE.detectPauses(SRC,n,onProg,()=>cancelSync);if(key&&!store.set(key,{p,info:p.info}))try{Object.keys(localStorage).filter(k=>/pauses/.test(k)).forEach(k=>localStorage.removeItem(k));store.set(key,{p,info:p.info})}catch(_){}return p}
+let SYNC_NOTE='';
 async function autoSync(){
   if(syncBusy)return;if(!SRC){toast('Load your narration audio first');return}
   const text=(CHAPTERS.length?CHAPTERS.map((c,i)=>(CHAP_HEADS[i]?CHAP_HEADS[i]+'\n':'')+c).join('\n\n'):$('story').value).trim();if(!text){toast('Paste the story text first');return}
   syncBusy=true;cancelSync=false;const btn=$('autoSyncBtn');btn.disabled=true;const fi=$('fullInfo');fi.style.display='';fi.style.color='var(--fg)';
   try{
     fi.innerHTML='<b>Listening for pauses in your audio…</b> 0%';
-    const pauses=await detectPauses(p=>{fi.innerHTML=`<b>Listening for pauses in your audio…</b> ${Math.round(p*100)}%`});
+    const units=(introInAudio()&&$('introMsg').value.trim()?storyUnits($('introMsg').value):[]).concat(storyUnits(text));
+    const pauses=await detectPauses(p=>{fi.innerHTML=`<b>Listening for pauses in your audio…</b> ${Math.round(p*100)}%`},units.length);
     fi.innerHTML='<b>Matching every line of the story to the audio…</b>';await new Promise(r=>setTimeout(r,30));
-    const units=(introInAudio()&&$('introMsg').value.trim()?storyUnits($('introMsg').value):[]).concat(storyUnits(text));const times=alignUnits(units,pauses,SRC.duration);
+    {const r=pauses.length/units.length;SYNC_NOTE=r<.6?`<br><span style="color:var(--warn)"><b>⚠ Only ${pauses.length.toLocaleString()} clear pauses for ${units.length.toLocaleString()} lines.</b> Your audio barely pauses between lines (or has music under it), so timing may be rough. Best fix: make the TTS leave a short pause after every line, and keep music off this file (add it in your editor afterwards).</span>`:`<br><span class="muted">Heard ${pauses.length.toLocaleString()} pauses for ${units.length.toLocaleString()} lines.</span>`}
+    const times=alignUnits(units,pauses,SRC.duration);
     CUES=units.map((u,i)=>({a:times[i],b:Math.max(times[i]+.2,times[i+1]-.3),t:u}));AUTO_SRT=true;
     $('srtDrop').classList.add('done');$('srtLabel').textContent=`Auto-timed from your story: ${units.length.toLocaleString()} lines`;
     $('saveSrtBtn').style.display='';detectFull();onScript();
@@ -3817,23 +3835,14 @@ const{makeSource,bufFromPlanar}=CORE;
 /* --- auto-sync: story units + pauses in the voice --- */
 let syncBusy=false,cancelSync=false;
 const{alignUnits}=CORE;
-async function detectPauses(onProg){
-  const key=SRC.key?'pauses:'+SRC.key:null;if(key){const c=store.get(key,null);if(c&&c.length)return c}
-  const D=SRC.duration,CH=60,thr=Math.pow(10,-35/20),frame=.01,res=[];let sil=null;
-  for(let t=0;t<D;t+=CH){if(cancelSync)throw new Error('cancelled');
-    const seg=await SRC.getSegment(t,Math.min(D,t+CH));const sr=seg.sampleRate,fl=Math.max(1,Math.round(sr*frame));
-    const c0=seg.getChannelData(0),c1=seg.numberOfChannels>1?seg.getChannelData(1):null,nF=Math.floor(seg.length/fl);
-    for(let f=0;f<nF;f++){let s=0;const o=f*fl,e=o+fl;if(c1){for(let k=o;k<e;k++){const v=(c0[k]+c1[k])*.5;s+=v*v}}else{for(let k=o;k<e;k++){const v=c0[k];s+=v*v}}
-      const tt=t+f*frame;if(Math.sqrt(s/fl)<thr){if(sil==null)sil=tt}else if(sil!=null){if(tt-sil>=.25)res.push([+sil.toFixed(3),+tt.toFixed(3)]);sil=null}}
-    onProg(Math.min(1,(t+CH)/D));await new Promise(r=>setTimeout(r,0))}
-  if(sil!=null&&D-sil>=.25)res.push([sil,D]);
-  if(key)store.set(key,res);return res}
+async function detectPauses(onProg,n){const key=SRC.key?'pauses2:'+SRC.key+':'+n:null;if(key){const c=store.get(key,null);if(c&&c.p&&c.p.length){const p=c.p;p.info=c.info;onProg(1);return p}}
+  const p=await CORE.detectPauses(SRC,n,onProg,()=>cancelSync);if(key&&!store.set(key,{p,info:p.info}))try{Object.keys(localStorage).filter(k=>/pauses/.test(k)).forEach(k=>localStorage.removeItem(k));store.set(key,{p,info:p.info})}catch(_){}return p}
 async function autoSync(){
   if(syncBusy)return;if(!SRC){toast('Load your narration audio first');return}
   if(!STORY.units.length){toast('Paste the story text first');return}
   syncBusy=true;cancelSync=false;$('syncBtn').disabled=true;$('cancelSyncBtn').style.display='';const msg=$('syncMsg');
   try{msg.innerHTML='<b>Listening for pauses in the voice…</b> 0%';
-    const pauses=await detectPauses(p=>{msg.innerHTML=`<b>Listening for pauses in the voice…</b> ${Math.round(p*100)}%`});
+    const pauses=await detectPauses(p=>{msg.innerHTML=`<b>Listening for pauses in the voice…</b> ${Math.round(p*100)}%`},STORY.units.length);
     msg.innerHTML='<b>Matching every line to the audio…</b>';await new Promise(r=>setTimeout(r,30));
     const units=STORY.units;const D=SRC.duration;
     const alignRange=(us,a,b)=>{if(!us.length)return[];const P=pauses.filter(p=>p[1]>a&&p[0]<b).map(p=>[Math.max(0,p[0]-a),Math.min(b,p[1])-a]);return alignUnits(us.map(u=>u.t),P,b-a).map(x=>x+a)};
@@ -3843,7 +3852,7 @@ async function autoSync(){
     if(times.length<units.length+1)times.push(D);
     RAW={kind:'auto',cues:units.map((u,i)=>{let b=Math.max(times[i]+.2,times[i+1]-.25);if(RAW_ENDS&&i===RAW_ENDS.iuN-1)b=Math.min(b,RAW_ENDS.introEnd-.1);return{a:times[i],b,t:u.t,chap:u.chap,head:u.head}})};RAW_ENDS=null;
     SYNC='auto';$('srtDrop').classList.remove('done');$('srtLabel').textContent='Not needed: auto-synced from your story';
-    finalizeCues();setSyncState();msg.innerHTML=`<span style="color:var(--ok)">✓ Synced ${units.length.toLocaleString()} lines across ${STORY.chapters.length} chapter${STORY.chapters.length>1?'s':''}.</span> Scrub the preview to check a few spots.`;
+    finalizeCues();setSyncState();msg.innerHTML=`<span style="color:var(--ok)">✓ Synced ${units.length.toLocaleString()} lines across ${STORY.chapters.length} chapter${STORY.chapters.length>1?'s':''}.</span> Scrub the preview to check a few spots.`+(pauses.length/units.length<.6?`<br><span style='color:var(--warn)'><b>⚠ Only ${pauses.length.toLocaleString()} clear pauses for ${units.length.toLocaleString()} lines.</b> The voice barely pauses between lines (or has music under it), so timing may be rough. Best fix: a short pause after every line in your TTS, and no music on this file.</span>`:`<br><span style='color:var(--muted)'>Heard ${pauses.length.toLocaleString()} pauses for ${units.length.toLocaleString()} lines.</span>`);
   }catch(e){if(String(e&&e.message)!=='cancelled'){console.error(e);msg.textContent='Auto-sync failed: '+(e&&e.message?e.message:e)}else msg.textContent='Cancelled.'}
   finally{syncBusy=false;$('syncBtn').disabled=false;$('cancelSyncBtn').style.display='none'}}
 function setSyncState(){const s=$('syncState');s.textContent=SYNC==='auto'?'auto-synced ✓':SYNC==='srt'?'synced from subtitles ✓':SRC?'audio loaded · not synced':'not synced · preview uses reading speed';$('saveSrtBtn').style.display=RAW?'':'none'}
