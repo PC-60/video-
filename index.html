@@ -96,6 +96,7 @@ input[type=file]{display:none}
 .check{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer}
 .check input{accent-color:var(--acc)}
 .muted{color:var(--muted)}
+@keyframes pulseG{0%,100%{box-shadow:0 0 0 0 rgba(255,210,63,.0)}50%{box-shadow:0 0 0 6px rgba(255,210,63,.45)}}.btn.pulse{animation:pulseG 1.4s ease-in-out infinite}
 </style>
 <header class="top"><h1>💬 Chat Story Video Maker</h1><span class="sub">story + narration → synced chat-bubble video</span><span class="sp"></span><span class="chip" id="saveState">Settings saved in this browser</span><button class="btn" data-switch>⇄ Switch tool</button></header>
 
@@ -147,12 +148,12 @@ input[type=file]{display:none}
         <div class="drop" id="audDrop"><b>Narration audio</b><span id="audLabel">Drop or click: MP3, M4A or WAV, any length. Baked into the video</span></div>
       </div>
       <div class="row" style="margin-top:10px">
-        <button class="btn p" id="autoSyncBtn" style="display:none">✨ Auto-sync without subtitles</button>
+        <button class="btn p" id="autoSyncBtn" style="display:none">✨ Sync chat to my audio</button>
         <button class="btn" id="saveSrtBtn" style="display:none">⬇ Save the timing as .srt</button>
         <button class="btn" id="mp3Btn" style="display:none" title="Make an MP3 copy of the loaded audio">⇄ Convert to MP3</button>
       </div>
       <p class="hint" id="fullInfo" style="display:none;color:var(--fg)"></p>
-      <p class="hint">MP3, M4A/AAC and WAV of any length. No subtitles? Load the audio and click <b>Auto-sync</b>. One narration for the whole story works too: every chapter is found inside it.</p>
+      <p class="hint">MP3, M4A/AAC and WAV of any length. No subtitles? Load the audio and click <b>✨ Sync chat to my audio</b>. One narration for the whole story works too: every chapter is found inside it.</p>
       <input type="file" id="srtFile" accept=".srt,.vtt,text/plain">
       <input type="file" id="audFile" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,video/mp4">
       <details class="adv"><summary>Fine-tune timing</summary><div class="row">
@@ -3379,12 +3380,12 @@ function onScript(){setChapterWindow();MSGS=parseScript($('script').value);compu
   const fi=$('fullInfo');if(FULL){const i=(parseInt($('chapSel').value)||0)+1;const miss=FULL.n-FULL.found;
     fi.style.display='';fi.style.color='var(--fg)';fi.innerHTML=`<b>One narration for the whole story:</b> found ${FULL.found} of ${FULL.n} chapters in it${miss?` (${miss} estimated)`:''}. Chapter ${i} plays <b>${fmt(CH_OFF)} – ${fmt(CH_OFF+CH_LEN)}</b> of your audio (${fmt(CH_LEN)}).`}
   else if(syncBusy){}
-  else if(SRC&&!CUES&&SRC.duration>1200){fi.style.display='';fi.style.color='var(--warn)';fi.innerHTML=`<b>⚠ Not synced yet.</b> Your audio is ${fmt(SRC.duration)} long. Click <b>✨ Auto-sync without subtitles</b> (about a minute), or load its matching .srt file.`}
+  else if(SRC&&!CUES){fi.style.display='';fi.style.color='var(--warn)';fi.innerHTML=`<b>⚠ Audio loaded but not synced yet.</b> The chat is still using reading speed. Click the glowing <b>✨ Sync chat to my audio</b> button (about a minute for 3 hours of audio), or load a matching .srt file.`}
   else if(SRC&&CUES&&CHAPTERS.length>1&&!FULL&&SRC.duration>1200){fi.style.display='';fi.style.color='var(--warn)';fi.innerHTML=`<b>⚠ Couldn't find the chapters in these subtitles.</b> Check that the .srt belongs to this audio and this story.`}
   else fi.style.display='none';
   $('exportAllBtn').style.display=CHAPTERS.length>1?'':'none';$('exportWholeBtn').style.display=CHAPTERS.length>1?'':'none';updSizeEst();
   $('mp3Btn').style.display=SRC&&SRC.kind!=='mp3'?'':'none';
-  $('autoSyncBtn').style.display=SRC&&(!CUES||AUTO_SRT)&&$('story').value.trim()?'':'none';$('autoSyncBtn').textContent=AUTO_SRT?'↻ Re-run auto-sync':'✨ Auto-sync without subtitles';
+  $('autoSyncBtn').style.display=SRC&&(!CUES||AUTO_SRT)&&$('story').value.trim()?'':'none';$('autoSyncBtn').textContent=AUTO_SRT?'↻ Re-run auto-sync':'✨ Sync chat to my audio';$('autoSyncBtn').classList.toggle('pulse',!!SRC&&!CUES&&!syncBusy);
   saveDraft()}
 function saveDraft(){const ok=store.set('draft',{story:$('story').value,script:$('script').value,title:$('chTitle').value,num:$('chNum').value});$('saveState').textContent=ok?'Saved in this browser':'Too big to auto-save'}
 let SCRIPT_EDITS={};const chIdx=()=>CHAPTERS.length>1?(parseInt($('chapSel').value)||0):0;
@@ -3621,7 +3622,7 @@ $('exportAllBtn').addEventListener('click',async()=>{if(CHAPTERS.length<2||!expo
   finally{exportingAll=false;exportEnd();$('expMsg').textContent=`Exported ${done} chapter${done===1?'':'s'}.`}});
 $('exportWholeBtn').addEventListener('click',async()=>{
   if(CHAPTERS.length<2){toast('Paste the whole story first: this joins all its chapters into one video.');return}
-  if(SRC&&!FULL){toast('For one video of the whole story, load one narration for the whole story and click ✨ Auto-sync (or load its .srt).',7000);return}
+  if(SRC&&!FULL){toast('For one video of the whole story, load one narration for the whole story and click ✨ Sync chat to my audio (or load its .srt).',7000);return}
   if(!exportStart())return;let S=null;const back=parseInt($('chapSel').value)||0;
   try{try{await document.fonts.ready}catch(_){}
     S=await openSession(!!SRC);if(!S)return;
